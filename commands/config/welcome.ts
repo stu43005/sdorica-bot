@@ -27,6 +27,12 @@ testgreet - 不確定您的歡迎/離開/DM消息的效果如何？ 只需輸入
 					prompt: '請選擇一個功能 (setchannel, welcome, leave, banmsg, dmjoin, testgreet)',
 					oneOf: ['setchannel', 'channel', 'welcome', 'greet', 'leave', 'farewell', 'banmsg', 'dmjoin', 'pmjoin', 'joindm', 'joinpm', 'testgreet'],
 				},
+				{
+					key: 'other',
+					type: 'string',
+					prompt: 'other',
+					default: '',
+				},
 			],
 		});
 

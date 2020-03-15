@@ -31,6 +31,12 @@ nsfw - 設定是否允許 NSFW 頻道上星。`,
 					prompt: '請選擇一個功能 (setchannel, limit, nsfw)',
 					oneOf: ['setchannel', 'channel', 'limit', 'nsfw'],
 				},
+				{
+					key: 'other',
+					type: 'string',
+					prompt: 'other',
+					default: '',
+				},
 			],
 		});
 

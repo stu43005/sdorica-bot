@@ -22,6 +22,12 @@ export default class ReactionRoleCommand extends Command2 {
 					prompt: '請選擇一個 reaction-role 功能 (add|unique)',
 					oneOf: ['add', 'unique'],
 				},
+				{
+					key: 'other',
+					type: 'string',
+					prompt: 'other',
+					default: '',
+				},
 			],
 		});
 

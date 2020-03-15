@@ -190,13 +190,13 @@ export default class ReactionRoleCommand extends Command2 {
 			try {
 				if (adds.length) {
 					adds.forEach(emo => {
-						console.log("add role: ", emo.roleId);
+						Logger.debug("add role: ", emo.roleId);
 						member.roles.add(emo.roleId);
 					});
 				}
 				if (removes.length) {
 					removes.forEach(emo => {
-						console.log("remove role: ", emo.roleId);
+						Logger.debug("remove role: ", emo.roleId);
 						member.roles.remove(emo.roleId);
 						unreact(messageReaction.message, emo.emoji, user);
 					});
@@ -250,13 +250,13 @@ export default class ReactionRoleCommand extends Command2 {
 			try {
 				if (adds.length) {
 					adds.forEach(emo => {
-						console.log("add role: ", emo.roleId);
+						Logger.debug("add role: ", emo.roleId);
 						member.roles.add(emo.roleId);
 					});
 				}
 				if (removes.length) {
 					removes.forEach(emo => {
-						console.log("remove role: ", emo.roleId);
+						Logger.debug("remove role: ", emo.roleId);
 						member.roles.remove(emo.roleId);
 					});
 				}

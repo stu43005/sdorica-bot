@@ -112,7 +112,7 @@ export default class QuoteCommand extends Command2 {
 
 export async function quoteEmbed(contextChannel: Discord.TextChannel | Discord.DMChannel, message: Discord.Message, user: Discord.User, footer = "Quoted") {
 	const sendedMessages: Discord.Message[] = [];
-	if (message.content) {
+	if (message.content || !message.author.bot) {
 		sendedMessages.push(await contextChannel.send(buildQuoteEmbed(contextChannel, message, user, footer)));
 	}
 	if (message.embeds && message.embeds.length > 0 && message.author.bot) {

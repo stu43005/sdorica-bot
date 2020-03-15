@@ -131,8 +131,8 @@ nsfw - 設定是否允許 NSFW 頻道上星。`,
 
 	initHooks(client: CommandoClient) {
 		client.on('messageReactionAdd', async (messageReaction: Discord.MessageReaction, user: Discord.User) => {
+			if (user.bot) return;
 			const message = messageReaction.message;
-			if (message.author.bot) return;
 			const guild = message.guild;
 			if (!guild) return;
 			if (!this.isEnabledIn(guild)) return;

@@ -1,0 +1,16 @@
+{
+	"activity": "DISCORD_ACTIVITY",
+	"token": "DISCORD_TOKEN",
+	"prefix": "DISCORD_PREFIX",
+	"logWebhook": {
+		"id": "LOG_WEBHOOK_ID",
+		"token": "LOG_WEBHOOK_TOKEN"
+	},
+	"firebaseAdmin": {
+		"cert": {
+			"__name": "FIREBASE_ADMIN_CERT",
+			"__format": "json"
+		},
+		"databaseURL": "FIREBASE_ADMIN_DATABASE"
+	}
+}

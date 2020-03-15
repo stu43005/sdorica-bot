@@ -1,0 +1,9 @@
+{
+	"activity": "Stewrica",
+	"prefix": "!",
+	"defaultCooldown": 3,
+	"cacheTTL": 43200,
+	"botOwners": [
+		"198437688255184897"
+	]
+}

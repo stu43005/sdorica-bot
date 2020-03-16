@@ -1,7 +1,7 @@
 import cheerio from "cheerio";
 import * as Discord from "discord.js";
 import { CommandoClient } from "discord.js-commando";
-import fetch from "node-fetch";
+import fetch, { FetchError } from "node-fetch";
 import { BucketType, CooldownMapping } from "../../cooldown";
 import { Command2 } from "../../typings/discord.js-commando/command";
 import { Logger } from "../../logger";
@@ -39,21 +39,27 @@ async function pttAutoEmbed(message: Discord.Message) {
 	let result: RegExpExecArray | null;
 	while ((result = urlRegex.exec(content)) !== null) {
 		const url = result[0];
-		const metaline = await getPttMetaline(url);
+		try {
+			const metaline = await getPttMetaline(url);
 
-		Logger.debug('[ptt]', `url = \`${url}\``);
-		Logger.debug('[ptt]', `metaline = \`${JSON.stringify(metaline)}\``);
+			Logger.debug('[ptt]', `url = \`${url}\``);
+			Logger.debug('[ptt]', `metaline = \`${JSON.stringify(metaline)}\``);
 
-		if (metaline["標題"] && metaline["nsfw"]) {
-			const embed = new Discord.MessageEmbed();
-			embed.setColor(789094);
-			embed.setAuthor(`看板：${metaline["看板"]}　　作者：${metaline["作者"]}`);
-			embed.setTitle(metaline["標題"]);
-			embed.setDescription(metaline["內文"]);
-			embed.setURL(url);
-			embed.setFooter("※ 發信站: 批踢踢實業坊(ptt.cc)");
-			embed.setTimestamp(new Date(`${metaline["時間"]} GMT+0800`));
-			return await message.say(embed);
+			if (metaline["標題"] && metaline["nsfw"]) {
+				const embed = new Discord.MessageEmbed();
+				embed.setColor(789094);
+				embed.setAuthor(`看板：${metaline["看板"]}　　作者：${metaline["作者"]}`);
+				embed.setTitle(metaline["標題"]);
+				embed.setDescription(metaline["內文"]);
+				embed.setURL(url);
+				embed.setFooter("※ 發信站: 批踢踢實業坊(ptt.cc)");
+				embed.setTimestamp(new Date(`${metaline["時間"]} GMT+0800`));
+				return await message.say(embed);
+			}
+		} catch (error) {
+			if (!(error instanceof FetchError)) {
+				Logger.error('[ptt]', error);
+			}
 		}
 	}
 	return null;

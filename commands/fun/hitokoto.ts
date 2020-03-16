@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { CommandoClient } from "discord.js-commando";
-import fetch from "node-fetch";
+import fetch, { FetchError } from "node-fetch";
 import { Command2 } from "../../typings/discord.js-commando/command";
 import { Logger } from "../../logger";
 
@@ -30,7 +30,9 @@ export default class HitokotoCommand extends Command2 {
 			embed.setFooter(`-「${hitokoto.from}」`);
 			return await message.say(embed);
 		} catch (error) {
-			Logger.error('[hitokoto]', error);
+			if (!(error instanceof FetchError)) {
+				Logger.error('[hitokoto]', error);
+			}
 		}
 		return null;
 	}

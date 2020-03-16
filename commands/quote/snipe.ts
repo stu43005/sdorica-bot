@@ -30,7 +30,7 @@ export default class SnipeCommand extends Command2 {
 		});
 
 		client.on("messageDelete", (message: Discord.Message) => {
-			if (message.guild && !message.author.bot) {
+			if (message.guild && !(message.author && message.author.bot)) {
 				let guildSnipes = snipes.get(message.guild.id);
 				if (!guildSnipes) {
 					guildSnipes = new Discord.Collection<Discord.Snowflake, Discord.Message>();

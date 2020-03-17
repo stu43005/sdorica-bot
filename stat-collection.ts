@@ -4,7 +4,7 @@ import admin from "firebase-admin";
 import { Subject } from "rxjs";
 import { auditTime } from "rxjs/operators";
 import { Logger } from "./logger";
-import { objectEach } from "./utils";
+import { getCustomEmojis } from "./utils";
 
 export class StatCollection {
 	private static guilds: { [guildId: string]: StatCollection } = {};
@@ -53,11 +53,11 @@ export class StatCollection {
 			meta = newmeta;
 		}
 		else {
-			objectEach(newmeta.channelNames, (key, value) => {
-				meta.channelNames[key] = value;
+			Object.keys(newmeta.channelNames).forEach(key => {
+				meta.channelNames[key] = newmeta.channelNames[key];
 			});
-			objectEach(newmeta.userNames, (key, value) => {
-				meta.userNames[key] = value;
+			Object.keys(newmeta.userNames).forEach(key => {
+				meta.userNames[key] = newmeta.userNames[key];
 			});
 		}
 		metaRef.set(meta, { merge: true });
@@ -94,11 +94,25 @@ export class StatCollection {
 	}
 
 	addMessage(message: Discord.Message) {
-		this.temp.messages = (this.temp.messages || 0) + 1;
 		if (!this.temp.messagesByMember) this.temp.messagesByMember = {};
-		this.temp.messagesByMember[message.author.id] = (this.temp.messagesByMember[message.author.id] || 0) + 1;
 		if (!this.temp.messagesByChannel) this.temp.messagesByChannel = {};
-		this.temp.messagesByChannel[message.channel.id] = (this.temp.messagesByChannel[message.channel.id] || 0) + 1;
+		if (!this.temp.messagesByMemberByChannel) this.temp.messagesByMemberByChannel = {};
+		if (!this.temp.messagesByMemberByChannel[message.author.id]) this.temp.messagesByMemberByChannel[message.author.id] = {};
+
+		add(this.temp, 'messages');
+		add(this.temp.messagesByMember, message.author.id);
+		add(this.temp.messagesByMemberByChannel[message.author.id], message.channel.id);
+		add(this.temp.messagesByChannel, message.channel.id);
+
+		const emojis = getCustomEmojis(message);
+		emojis.forEach(emoji => {
+			if (!this.temp.emojis) this.temp.emojis = {};
+			if (!this.temp.emojisByMember) this.temp.emojisByMember = {};
+			if (!this.temp.emojisByMember[message.author.id]) this.temp.emojisByMember[message.author.id] = {};
+
+			add(this.temp.emojis, emoji.id);
+			add(this.temp.emojisByMember[message.author.id], emoji.id);
+		});
 
 		this.meta.userNames[message.author.id] = message.author.tag;
 		this.meta.channelNames[message.channel.id] = (message.channel as Discord.TextChannel).name;
@@ -106,9 +120,20 @@ export class StatCollection {
 		this.update$.next();
 	}
 
+	addReaction(messageReaction: Discord.MessageReaction, user: Discord.User) {
+		if (messageReaction.emoji.id) {
+			if (!this.temp.reactions) this.temp.reactions = {};
+			if (!this.temp.reactionsByMember) this.temp.reactionsByMember = {};
+			if (!this.temp.reactionsByMember[user.id]) this.temp.reactionsByMember[user.id] = {};
+
+			add(this.temp.reactions, messageReaction.emoji.id);
+			add(this.temp.reactionsByMember[user.id], messageReaction.emoji.id);
+		}
+	}
+
 	addMeme(message: Discord.Message, meme: string) {
 		if (!this.temp.memes) this.temp.memes = {};
-		this.temp.memes[meme] = (this.temp.memes[meme] || 0) + 1;
+		add(this.temp.memes, meme);
 
 		this.update$.next();
 	}
@@ -121,17 +146,35 @@ function mergeData(base: StatData, temp: StatData) {
 	if (temp.messages) base.messages = (base.messages || 0) + temp.messages;
 
 	mergeRecordData(base, temp, 'messagesByMember');
+	mergeDoubleRecordData(base, temp, 'messagesByMemberByChannel');
 	mergeRecordData(base, temp, 'messagesByChannel');
+	mergeRecordData(base, temp, 'emojis');
+	mergeDoubleRecordData(base, temp, 'emojisByMember');
+	mergeRecordData(base, temp, 'reactions');
+	mergeDoubleRecordData(base, temp, 'reactionsByMember');
 	mergeRecordData(base, temp, 'memes');
 }
 
 function mergeRecordData(base: StatData, temp: StatData, type: string) {
 	if (temp[type]) {
 		if (!base[type]) base[type] = {};
-		objectEach(temp[type], (key, value) => {
-			base[type][key] = (base[type][key] || 0) + value;
+		Object.keys(temp[type]).forEach(key => {
+			add(base[type], key, temp[type][key]);
 		});
 	}
+}
+
+function mergeDoubleRecordData(base: StatData, temp: StatData, type: string) {
+	if (temp[type]) {
+		if (!base[type]) base[type] = {};
+		Object.keys(temp[type]).forEach(key => {
+			mergeRecordData(base[type], temp[type], key);
+		});
+	}
+}
+
+function add(obj: object, key: string, value = 1) {
+	obj[key] = (obj[key] || 0) + value;
 }
 
 
@@ -149,9 +192,16 @@ interface StatData {
 
 	messages?: number;
 	messagesByMember?: Record<string, number>;
+	messagesByMemberByChannel?: Record<string, Record<string, number>>;
 	messagesByChannel?: Record<string, number>;
+	emojis?: Record<string, number>;
+	emojisByMember?: Record<string, Record<string, number>>;
+
+	reactions?: Record<string, number>;
+	reactionsByMember?: Record<string, Record<string, number>>;
 
 	memes?: Record<string, number>;
+
 }
 
 /*
@@ -174,13 +224,6 @@ interface StatData {
 		[userId: string]: number,
 	},
 	messagesByChannel: {
-		[channelId: string]: number,
-	},
-	voice: number,
-	voiceByMember: {
-		[userId: string]: number,
-	},
-	voiceByChannel: {
 		[channelId: string]: number,
 	},
 }

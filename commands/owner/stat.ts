@@ -27,6 +27,13 @@ export default class StatCommand extends Command2 {
 			StatCollection.fromGuild(message.guild).addMessage(message);
 		});
 
+		client.on('messageReactionAdd', (messageReaction: Discord.MessageReaction, user: Discord.User) => {
+			if (user.bot) return;
+			const guild = messageReaction.message.guild;
+			if (!guild) return;
+			StatCollection.fromGuild(guild).addReaction(messageReaction, user);
+		});
+
 		client.on("guildMemberAdd", (member: Discord.GuildMember) => {
 			StatCollection.fromGuild(member.guild).memberChange();
 		});

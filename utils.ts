@@ -66,23 +66,6 @@ export function arrayConcat<T>(arr: T[], obj: T | T[]): T[] {
 	return [...arr, obj];
 }
 
-export function objectEach<T>(obj: Record<string, T>, callback: (key: string, value: T) => boolean | void) {
-	for (const i in obj) {
-		if (callback(i, obj[i]) === false) {
-			break;
-		}
-	}
-	return obj;
-}
-
-export function objectMap<T, U>(obj: Record<string, T>, callback: (key: string, value: T) => U): Record<string, U> {
-	const out: Record<string, U> = {};
-	for (const i in obj) {
-		out[i] = callback(i, obj[i]);
-	}
-	return out;
-}
-
 export function isBotOwner(user: Discord.User) {
 	return config.get<string[]>('botOwners').indexOf(user.id) >= 0;
 }
@@ -104,4 +87,11 @@ export function numMultiply(arg1: number, arg2: number): number {
 	}
 	catch (e) { }
 	return Number(s1.replace(".", "")) * Number(s2.replace(".", "")) / Math.pow(10, m);
+}
+
+export function getCustomEmojis(message: Discord.Message) {
+	const matchs = message.content.match(/(?:<a?:([a-zA-Z0-9_]+):)([0-9]+)(?:>)/g);
+	const ids = matchs?.map(e => e.match(/^(?:<a?:([a-zA-Z0-9_]+):)?([0-9]+)>?$/)?.[2] || '').filter(e => !!e) || [];
+	const emojis = (message.guild ?? message.client).emojis.cache.filter(emoji => ids.includes(emoji.id));
+	return emojis;
 }

@@ -78,6 +78,7 @@ export class StarboardStore {
 		if (this.temp[message.id]) {
 			this.temp[message.id].count = count;
 			delete this.adding[message.id];
+			this.update$.next();
 		}
 	}
 }

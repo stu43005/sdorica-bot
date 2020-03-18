@@ -65,7 +65,11 @@ client.setProvider(new FirestoreProvider(app)).catch(Logger.error);
 
 // init registry
 client.registry
-	.registerDefaults()
+	.registerDefaultTypes()
+	.registerDefaultGroups()
+	.registerDefaultCommands({
+		unknownCommand: false,
+	})
 	.registerGroups([
 		['sdorica', 'Sdorica commands'],
 		['fun', 'Fun commands'],
@@ -101,6 +105,7 @@ const server = http.createServer((request, response) => {
 	response.end(`Hello Sdorica!<br>
 Client ready at: ${client.readyAt?.toISOString() || 'Not Ready'}<br>
 Client uptime: ${(client.uptime || 0) / 1000} seconds<br>
+${client.ws.ping ? `The heartbeat ping is ${Math.round(client.ws.ping)}ms.` : ''}<br>
 Server time: ${dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss 'UTC'o")}`);
 });
 server.listen(process.env.PORT || 8080);

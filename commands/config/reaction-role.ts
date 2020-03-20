@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
 import { ArgumentCollector, CommandoClient, CommandoMessage } from "discord.js-commando";
-import { Command2 } from "../../typings/discord.js-commando/command";
 import { Logger } from "../../logger";
+import { SubCommand } from "../../sub-command";
 import { unreact } from "../../utils";
 
-export default class ReactionRoleCommand extends Command2 {
+export default class ReactionRoleCommand extends SubCommand {
 	constructor(client: CommandoClient) {
 		super(client, {
 			name: 'reaction-role',
@@ -14,63 +14,51 @@ export default class ReactionRoleCommand extends Command2 {
 			description: '設定 ReactionRole',
 			guildOnly: true,
 			userPermissions: ['MANAGE_GUILD'],
-
-			args: [
+		}, {
+			funcs: [
 				{
-					type: 'string',
-					key: 'func',
-					prompt: '請選擇一個 reaction-role 功能 (add|unique)',
-					oneOf: ['add', 'unique'],
+					name: 'add',
+					description: '新增反應表情',
+					run: (message, arg) => this.add(message, arg.argsResult.channel, arg.argsResult.messageId, arg.argsResult.argString),
+					args: [
+						{
+							key: 'channel',
+							type: 'text-channel',
+							prompt: '請輸入訊息所在的頻道',
+						},
+						{
+							key: 'messageId',
+							type: 'snowflake',
+							prompt: '請輸入訊息ID',
+						},
+						{
+							key: 'argString',
+							type: 'string',
+							prompt: 'function argument',
+							default: '',
+						},
+					],
 				},
 				{
-					key: 'other',
-					type: 'string',
-					prompt: 'other',
-					default: '',
-				},
+					name: 'unique',
+					description: '將模式設為唯一',
+					run: (message, arg) => this.setMode(message, arg.argsResult.messageId, ReactionRoleType.UNIQUE),
+					args: [
+						{
+							key: 'messageId',
+							type: 'snowflake',
+							prompt: '請輸入訊息ID',
+						},
+					],
+				}
 			],
 		});
 
 		this.initHooks(client);
 	}
 
-	async run2(message: Discord.Message, { func }: { func: string }) {
-		const args = CommandoMessage.parseArgs(message.argString);
-		args.shift();
-
-		switch (func) {
-			case "add":
-				return await this.add(message, args);
-			case "unique":
-				return await this.setMode(message, args, ReactionRoleType.UNIQUE);
-		}
-		return null;
-	}
-
-	async add(message: Discord.Message, args: string[]) {
-		const argsInfo = [
-			{
-				key: 'channel',
-				type: 'text-channel',
-				prompt: '請輸入訊息所在的頻道',
-			},
-			{
-				key: 'messageId',
-				type: 'snowflake',
-				prompt: '請輸入訊息ID',
-			},
-		];
-		const collector = new ArgumentCollector(this.client, argsInfo);
-		const result = await collector.obtain(message, args);
-		if (result.cancelled || !result.values) {
-			return null;
-		}
-		args.shift();
-		args.shift();
-		const { channel, messageId } = result.values as {
-			channel: Discord.TextChannel,
-			messageId: string,
-		};
+	async add(message: Discord.Message, channel: Discord.TextChannel, messageId: string, argString: string) {
+		const args = CommandoMessage.parseArgs(argString);
 
 		do {
 			const subArgsInfo = [
@@ -105,26 +93,8 @@ export default class ReactionRoleCommand extends Command2 {
 		return await message.reply("succeeded");
 	}
 
-	async setMode(message: Discord.Message, args: string[], type: ReactionRoleType) {
+	async setMode(message: Discord.Message, messageId: string, type: ReactionRoleType) {
 		if (!message.guild) return null;
-
-		const argsInfo = [
-			{
-				key: 'messageId',
-				type: 'snowflake',
-				prompt: '請輸入訊息ID',
-			},
-		];
-		const collector = new ArgumentCollector(this.client, argsInfo);
-		const result = await collector.obtain(message, args);
-		if (result.cancelled || !result.values) {
-			return null;
-		}
-		args.shift();
-		const { messageId } = result.values as {
-			messageId: string,
-		};
-
 		const succeeded = await setReactionRoleMode(message.guild, messageId, type);
 		return await message.reply(succeeded ? "succeeded" : "failed");
 	}

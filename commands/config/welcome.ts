@@ -1,70 +1,57 @@
 import * as Discord from "discord.js";
-import { CommandoClient, CommandoMessage } from "discord.js-commando";
-import { Command2 } from "../../typings/discord.js-commando/command";
+import { CommandoClient } from "discord.js-commando";
+import { SubCommand } from "../../sub-command";
 import { arrayConcat } from "../../utils";
 
-export default class WelcomeCommand extends Command2 {
+export default class WelcomeCommand extends SubCommand {
 	constructor(client: CommandoClient) {
 		super(client, {
 			name: 'welcome',
 			group: 'config',
 			memberName: 'welcome',
 			description: '設定歡迎訊息',
-			details: `功能列表：
-setchannel - 設定要發送歡迎/離開/封鎖訊息的頻道。
-welcome - 設定在新用戶加入時發送的歡迎訊息。
-leave - 設定在用戶離開時發送的訊息。
-banmsg - 設定在用戶被封鎖時發送的訊息。
-dmjoin - 設定在新用戶加入時發送的 DM 訊息。
-testgreet - 不確定您的歡迎/離開/DM消息的效果如何？ 只需輸入testgreet，就將它們全部吐出。`,
 			guildOnly: true,
 			userPermissions: ['MANAGE_GUILD'],
-
-			args: [
+		}, {
+			funcs: [
 				{
-					type: 'string',
-					key: 'func',
-					prompt: '請選擇一個功能 (setchannel, welcome, leave, banmsg, dmjoin, testgreet)',
-					oneOf: ['setchannel', 'channel', 'welcome', 'greet', 'leave', 'farewell', 'banmsg', 'dmjoin', 'pmjoin', 'joindm', 'joinpm', 'testgreet'],
+					name: 'setchannel',
+					aliases: ['channel'],
+					description: '設定要發送歡迎/離開/封鎖訊息的頻道。',
+					run: (message, arg) => this.setchannel(message),
 				},
 				{
-					key: 'other',
-					type: 'string',
-					prompt: 'other',
-					default: '',
+					name: 'welcome',
+					aliases: ['greet'],
+					description: '設定在新用戶加入時發送的歡迎訊息。',
+					run: (message, arg) => this.welcome(message, arg.argString),
+				},
+				{
+					name: 'leave',
+					aliases: ['farewell'],
+					description: '設定在用戶離開時發送的訊息。',
+					run: (message, arg) => this.leave(message, arg.argString),
+				},
+				{
+					name: 'banmsg',
+					description: '設定在用戶被封鎖時發送的訊息。',
+					run: (message, arg) => this.banmsg(message, arg.argString),
+				},
+				{
+					name: 'dmjoin',
+					aliases: ['pmjoin', 'joindm', 'joinpm'],
+					description: '設定在新用戶加入時發送的 DM 訊息。',
+					run: (message, arg) => this.dmjoin(message, arg.argString),
+				},
+				{
+					name: 'testgreet',
+					description: '不確定您的歡迎/離開/DM消息的效果如何？ 只需輸入testgreet，就會將它們全部發出來給你看！',
+					run: (message, arg) => this.testgreet(message),
 				},
 			],
 		});
 
 		this.initHooks(client);
-	}
-
-	async run2(message: Discord.Message, { func }: { func: string }) {
-		const arg = message.argString.substr(message.argString.indexOf(func) + func.length).trim();
-		const args = CommandoMessage.parseArgs(message.argString);
-		args.shift();
-
-		switch (func) {
-			case 'setchannel':
-			case 'channel':
-				return await this.setchannel(message);
-			case 'welcome':
-			case 'greet':
-				return await this.welcome(message, arg);
-			case 'leave':
-			case 'farewell':
-				return await this.leave(message, arg);
-			case 'banmsg':
-				return await this.banmsg(message, arg);
-			case 'dmjoin':
-			case 'pmjoin':
-			case 'joindm':
-			case 'joinpm':
-				return await this.dmjoin(message, arg);
-			case 'testgreet':
-				return await this.testgreet(message);
-		}
-		return null;
 	}
 
 	async setchannel(message: Discord.Message) {

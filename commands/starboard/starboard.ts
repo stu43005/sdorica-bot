@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
-import { ArgumentCollector, CommandoClient, CommandoMessage } from "discord.js-commando";
-import { Command2 } from "../../typings/discord.js-commando/command";
+import { CommandoClient } from "discord.js-commando";
+import { SubCommand } from "../../sub-command";
 import { StarboardStore } from "./starboard-store.ignore";
 
 interface StarboardSetting {
@@ -10,53 +10,45 @@ interface StarboardSetting {
 	ignore?: string[];
 }
 
-export default class StarboardCommand extends Command2 {
+export default class StarboardCommand extends SubCommand {
 	constructor(client: CommandoClient) {
 		super(client, {
 			name: 'starboard',
 			group: 'config',
 			memberName: 'starboard',
 			description: '設定 starboard',
-			details: `功能列表：
-setchannel - 設定 starboard 的頻道。
-limit - 設定上榜所需星星數量。
-nsfw - 設定是否允許 NSFW 頻道上星。`,
 			guildOnly: true,
 			userPermissions: ['MANAGE_GUILD'],
-
-			args: [
+		}, {
+			funcs: [
 				{
-					type: 'string',
-					key: 'func',
-					prompt: '請選擇一個功能 (setchannel, limit, nsfw)',
-					oneOf: ['setchannel', 'channel', 'limit', 'nsfw'],
+					name: 'setchannel',
+					aliases: ['channel'],
+					description: '設定 starboard 的頻道。',
+					run: (message, arg) => this.setchannel(message),
 				},
 				{
-					key: 'other',
-					type: 'string',
-					prompt: 'other',
-					default: '',
+					name: 'limit',
+					description: '設定上榜所需星星數量。',
+					run: (message, arg) => this.limit(message, arg.argsResult.count),
+					args: [
+						{
+							key: 'count',
+							type: 'integer',
+							prompt: '請輸入上榜所需星星數量',
+							default: -1,
+						},
+					]
+				},
+				{
+					name: 'nsfw',
+					description: '設定是否允許 NSFW 頻道上星。',
+					run: (message, arg) => this.setnsfw(message),
 				},
 			],
 		});
 
 		this.initHooks(client);
-	}
-
-	async run2(message: Discord.Message, { func }: { func: string }) {
-		const args = CommandoMessage.parseArgs(message.argString);
-		args.shift();
-
-		switch (func) {
-			case 'setchannel':
-			case 'channel':
-				return await this.setchannel(message);
-			case 'limit':
-				return await this.limit(message, args);
-			case 'nsfw':
-				return await this.setnsfw(message);
-		}
-		return null;
 	}
 
 	async setchannel(message: Discord.Message) {
@@ -85,26 +77,8 @@ nsfw - 設定是否允許 NSFW 頻道上星。`,
 		}
 	}
 
-	async limit(message: Discord.Message, args: string[]) {
+	async limit(message: Discord.Message, count: number) {
 		if (!message.guild) return null;
-
-		const argsInfo = [
-			{
-				key: 'count',
-				type: 'integer',
-				prompt: '請輸入上榜所需星星數量',
-				default: -1,
-			},
-		];
-		const collector = new ArgumentCollector(this.client, argsInfo);
-		const result = await collector.obtain(message, args);
-		if (result.cancelled || !result.values) {
-			return null;
-		}
-		args.shift();
-		const { count } = result.values as {
-			count: number,
-		};
 
 		const starboard: StarboardSetting = await message.guild.settings.get('starboard', {});
 		if (count === -1) {

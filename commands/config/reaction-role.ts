@@ -120,6 +120,12 @@ export default class ReactionRoleCommand extends SubCommand {
 			const rrEmoji = rr.emojis.find(emo => emo.emoji == emoji);
 			if (!rrEmoji) return;
 
+			const role = member.guild.roles.resolve(rrEmoji.roleId);
+			if (role === null) {
+				removeReactionRole(guild, message.id, rrEmoji.roleId);
+				return;
+			}
+
 			const roleIds = rr.emojis.map(emo => emo.roleId);
 			const memberHasRoles = member.roles.cache.filter(role => roleIds.includes(role.id));
 
@@ -161,13 +167,21 @@ export default class ReactionRoleCommand extends SubCommand {
 				if (adds.length) {
 					adds.forEach(emo => {
 						Logger.debug("add role: ", emo.roleId);
-						member.roles.add(emo.roleId);
+						const role = member.guild.roles.resolve(emo.roleId);
+						if (role === null) {
+							return;
+						}
+						member.roles.add(role.id);
 					});
 				}
 				if (removes.length) {
 					removes.forEach(emo => {
 						Logger.debug("remove role: ", emo.roleId);
-						member.roles.remove(emo.roleId);
+						const role = member.guild.roles.resolve(emo.roleId);
+						if (role === null) {
+							return;
+						}
+						member.roles.remove(role.id);
 						unreact(messageReaction.message, emo.emoji, user);
 					});
 				}
@@ -199,6 +213,12 @@ export default class ReactionRoleCommand extends SubCommand {
 			const rrEmoji = rr.emojis.find(emo => emo.emoji == emoji);
 			if (!rrEmoji) return;
 
+			const role = member.guild.roles.resolve(rrEmoji.roleId);
+			if (role === null) {
+				removeReactionRole(guild, message.id, rrEmoji.roleId);
+				return;
+			}
+
 			let adds: ReactionRoleEmoji[] = [];
 			let removes: ReactionRoleEmoji[] = [rrEmoji];
 			switch (rr.type) {
@@ -221,13 +241,21 @@ export default class ReactionRoleCommand extends SubCommand {
 				if (adds.length) {
 					adds.forEach(emo => {
 						Logger.debug("add role: ", emo.roleId);
-						member.roles.add(emo.roleId);
+						const role = member.guild.roles.resolve(emo.roleId);
+						if (role === null) {
+							return;
+						}
+						member.roles.add(role.id);
 					});
 				}
 				if (removes.length) {
 					removes.forEach(emo => {
 						Logger.debug("remove role: ", emo.roleId);
-						member.roles.remove(emo.roleId);
+						const role = member.guild.roles.resolve(emo.roleId);
+						if (role === null) {
+							return;
+						}
+						member.roles.remove(role.id);
 					});
 				}
 			} catch (error) {
@@ -267,9 +295,9 @@ async function addReactionRole(message: Discord.Message, emoji: string, roleId: 
 
 async function setReactionRoleMode(guild: Discord.Guild, messageId: string, mode: ReactionRoleType) {
 	const reactionRoles: ReactionRole[] = guild.settings.get("reactionRoles", []);
-	let rr = reactionRoles.find(rr => rr.messageId == messageId);
+	const rr = reactionRoles.find(rr => rr.messageId == messageId);
 	if (!rr) {
-		return;
+		return false;
 	}
 	rr.type = mode;
 	Logger.debug(`[setReactionRoleMode] message: ${messageId}, mode: ${mode}`);

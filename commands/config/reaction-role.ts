@@ -17,6 +17,20 @@ export default class ReactionRoleCommand extends SubCommand {
 		}, {
 			funcs: [
 				{
+					name: 'list',
+					aliases: ['show'],
+					description: '顯示反應表情清單',
+					run: (message, arg) => this.list(message, arg.argsResult.messageId),
+					args: [
+						{
+							key: 'messageId',
+							type: 'snowflake',
+							prompt: '請輸入訊息ID',
+							default: '',
+						},
+					],
+				},
+				{
 					name: 'add',
 					description: '新增反應表情',
 					run: (message, arg) => this.add(message, arg.argsResult.channel, arg.argsResult.messageId, arg.argsResult.argString),
@@ -50,11 +64,61 @@ export default class ReactionRoleCommand extends SubCommand {
 							prompt: '請輸入訊息ID',
 						},
 					],
-				}
+				},
+				{
+					name: 'remove',
+					description: '移除反應表情',
+					run: (message, arg) => this.remove(message, arg.argsResult.messageId, arg.argsResult.emojiOrRole),
+					args: [
+						{
+							key: 'messageId',
+							type: 'snowflake',
+							prompt: '請輸入訊息ID',
+						},
+						{
+							key: 'emojiOrRole',
+							type: 'default-emoji|custom-emoji|role',
+							prompt: '請輸入表情或用戶組名稱',
+						},
+					],
+				},
+				{
+					name: 'clear',
+					description: '清除反應表情',
+					run: (message, arg) => this.clear(message, arg.argsResult.messageId),
+					args: [
+						{
+							key: 'messageId',
+							type: 'snowflake',
+							prompt: '請輸入訊息ID',
+						},
+					],
+				},
 			],
 		});
 
 		this.initHooks(client);
+	}
+
+	async list(message: Discord.Message, messageId: string) {
+		if (!message.guild) return null;
+		const reactionRoles: ReactionRole[] = message.guild.settings.get("reactionRoles", []);
+		const rrs = reactionRoles.filter(rr => (!messageId || rr.messageId == messageId) && rr.emojis.length);
+		if (rrs.length === 0) {
+			return message.say('You do not have any reaction roles.');
+		}
+
+		const embed = new Discord.MessageEmbed();
+		embed.setTitle('Reaction roles');
+		embed.addFields(rrs.map(rr => ({
+			name: rr.messageId,
+			value: rr.emojis.map(rrEmoji => {
+				const emoji = message.guild?.emojis.resolve(rrEmoji.emoji);
+				const role = message.guild?.roles.resolve(rrEmoji.roleId);
+				return `${emoji ?? rrEmoji.emoji}: ${role ?? rrEmoji.roleId}`;
+			}).join('\n'),
+		})));
+		return message.say(embed);
 	}
 
 	async add(message: Discord.Message, channel: Discord.TextChannel, messageId: string, argString: string) {
@@ -96,6 +160,19 @@ export default class ReactionRoleCommand extends SubCommand {
 	async setMode(message: Discord.Message, messageId: string, type: ReactionRoleType) {
 		if (!message.guild) return null;
 		const succeeded = await setReactionRoleMode(message.guild, messageId, type);
+		return await message.reply(succeeded ? "succeeded" : "failed");
+	}
+
+	async remove(message: Discord.Message, messageId: string, emojiOrRole: Discord.GuildEmoji | string | Discord.Role) {
+		if (!message.guild) return null;
+		const emojiOrRoleId = typeof emojiOrRole === 'string' ? emojiOrRole : emojiOrRole.id;
+		const succeeded = await removeReactionRole(message.guild, messageId, emojiOrRoleId);
+		return await message.reply(succeeded ? "succeeded" : "failed");
+	}
+
+	async clear(message: Discord.Message, messageId: string) {
+		if (!message.guild) return null;
+		const succeeded = await clearReactionRole(message.guild, messageId);
 		return await message.reply(succeeded ? "succeeded" : "failed");
 	}
 
@@ -301,6 +378,56 @@ async function setReactionRoleMode(guild: Discord.Guild, messageId: string, mode
 	}
 	rr.type = mode;
 	Logger.debug(`[setReactionRoleMode] message: ${messageId}, mode: ${mode}`);
+	await guild.settings.set('reactionRoles', reactionRoles);
+	return true;
+}
+
+async function removeReactionRole(guild: Discord.Guild, messageId: string, emojiOrRoleId: string) {
+	const reactionRoles: ReactionRole[] = guild.settings.get("reactionRoles", []);
+	const rrIndex = reactionRoles.findIndex(rr => rr.messageId == messageId);
+	const rr = reactionRoles[rrIndex];
+	if (!rr) { return false; }
+
+	const rrEmojiIndex = rr.emojis.findIndex(emo => emo.emoji == emojiOrRoleId || emo.roleId == emojiOrRoleId);
+	if (rrEmojiIndex === -1) { return false; }
+
+	const rrEmoji = rr.emojis[rrEmojiIndex];
+	rr.emojis.splice(rrEmojiIndex, 1);
+	if (rr.emojis.length === 0) {
+		reactionRoles.splice(rrIndex, 1);
+	}
+
+	const channel = guild.channels.resolve(rr.channelId);
+	if (channel instanceof Discord.TextChannel) {
+		const message = await channel.messages.fetch(messageId);
+		if (message) {
+			unreact(message, rrEmoji.emoji);
+		}
+	}
+
+	Logger.debug(`[removeReactionRole] message: ${messageId}, emoji: ${rrEmoji.emoji}, role: ${rrEmoji.roleId}`);
+	await guild.settings.set('reactionRoles', reactionRoles);
+	return true;
+}
+
+async function clearReactionRole(guild: Discord.Guild, messageId: string) {
+	const reactionRoles: ReactionRole[] = guild.settings.get("reactionRoles", []);
+	const rrIndex = reactionRoles.findIndex(rr => rr.messageId == messageId);
+	const rr = reactionRoles[rrIndex];
+	if (!rr) { return false; }
+	reactionRoles.splice(rrIndex, 1);
+
+	const channel = guild.channels.resolve(rr.channelId);
+	if (channel instanceof Discord.TextChannel) {
+		const message = await channel.messages.fetch(messageId);
+		if (message) {
+			rr.emojis.forEach(rrEmoji => {
+				unreact(message, rrEmoji.emoji);
+			});
+		}
+	}
+
+	Logger.debug(`[clearReactionRole] message: ${messageId}`);
 	await guild.settings.set('reactionRoles', reactionRoles);
 	return true;
 }

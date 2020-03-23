@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import { CommandoClient } from "discord.js-commando";
 import { Random } from "random-js";
-import uuid from "uuid/v4";
+import { v4 as uuid } from "uuid";
 import { BucketType, CooldownMapping } from "../../cooldown";
 import { Command2 } from "../../typings/discord.js-commando/command";
 import { arrayConcat, embedOriginUserData } from "../../utils";

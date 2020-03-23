@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { CommandoClient } from "discord.js-commando";
 import fetch from "node-fetch";
 import { isArray } from "util";
-import uuid from "uuid/v4";
+import { v4 as uuid } from "uuid";
 import { Command2 } from "../../typings/discord.js-commando/command";
 import { getMatchType, MatchType, MemeItem } from "./meme";
 

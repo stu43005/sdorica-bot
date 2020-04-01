@@ -59,6 +59,7 @@ const charAlias: { [name: string]: string[] } = {
 	"艾利歐": ["小天使"],
 	"米莎": ["misa", "小蛇"],
 	"安潔莉亞": ["公主"],
+	"瑪莉亞": ["瑪麗亞", "玛丽亚"],
 };
 
 let MaxLevel = 70;
@@ -96,10 +97,9 @@ export default class WikiCommand extends Command2 {
 	async run2(message: Discord.Message, arg: string) {
 
 		let args = arg.match(/((?!")[^ "]+|(?:")[^"]*(?:")|^$)/g)!;
-		const searchParams = new URLSearchParams({ 'search': arg });
-		const wikiUrl = `https://sdorica.xyz/index.php?${searchParams.toString()}`;
+		const wikiUrl = `https://sdorica.xyz/index.php/%E7%89%B9%E6%AE%8A:%E6%90%9C%E5%B0%8B/${encodeURIComponent(arg)}`;
 
-		if (args.length > 0) {
+		if (args.length > 0 && args[0] !== "") {
 			// to Traditional Chinese
 			args = args.map(s => tify(s));
 
@@ -450,7 +450,7 @@ class CalcData {
 		embed.setThumbnail(`https://sdorica.xyz/index.php/特殊:重新導向/file/${imageName}_Potrait_Icons_SSR.png`);
 		embed.setTitle(pageName);
 		embed.setDescription(`等級: ${this.level}, 階級: ${rankText[this.rank][0]}, 加值: +${this.subrank}${this.isSkillBook ? ", 技能書" : this.isSkin ? ", 造型書" : ""}`);
-		embed.setURL(`https://sdorica.xyz/index.php/${pageName}`);
+		embed.setURL(`https://sdorica.xyz/index.php/${encodeURIComponent(pageName)}`);
 		embed.addField('🗡️ 攻擊', atk || '-', true);
 		embed.addField('❤️ 體力', hp || '-', true);
 		if (this.waitingReaction) {

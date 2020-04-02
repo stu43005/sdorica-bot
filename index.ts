@@ -1,10 +1,9 @@
-import dateFormat from "dateformat";
+import config from 'config';
 import { Client, FriendlyError } from "discord.js-commando";
 import admin from "firebase-admin";
-import http from "http";
 import path from "path";
-import config from 'config';
 import { FirestoreProvider } from "./firestore-provider";
+import { initHttp } from "./http";
 import { Logger } from "./logger";
 import { isDevMode } from "./utils";
 
@@ -99,13 +98,5 @@ client.registry.commands.forEach(command => {
 // login to Discord
 client.login(config.get("token"));
 
-// init http server
-const server = http.createServer((request, response) => {
-	response.writeHead(200, { "Content-Type": "text/html" });
-	response.end(`Hello Sdorica!<br>
-Client ready at: ${client.readyAt?.toISOString() || 'Not Ready'}<br>
-Client uptime: ${(client.uptime || 0) / 1000} seconds<br>
-${client.ws.ping ? `The heartbeat ping is ${Math.round(client.ws.ping)}ms.` : ''}<br>
-Server time: ${dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss 'UTC'o")}`);
-});
-server.listen(process.env.PORT || 8080);
+// init express server
+initHttp(client);

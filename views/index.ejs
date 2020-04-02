@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Sdorica Bot</title>
+</head>
+<body>
+	<h2>Hello Sdorica!</h2>
+	Client ready at: <%= readyAt || 'Not Ready' %><br>
+	Client uptime: <%= Math.floor((uptime || 0) / 1000) %> seconds<br>
+	<% if (ping) { %>
+	The heartbeat ping is <%= Math.round(ping) %>ms.<br>
+	<% } %>
+	Server time: <%= date %>
+</body>
+</html>

@@ -50,6 +50,7 @@ export function initHttp(client: Discord.Client) {
 					}
 				}
 			}
+			res.status(404).json({ error: 'Not Found' });
 		} catch (err) {
 			res.status(500).json({ error: err.toString() });
 		}

@@ -11,6 +11,10 @@ import { isDevMode } from "./utils";
 process
 	.on('warning', Logger.warn)
 	.on('unhandledRejection', (error) => {
+		if (error instanceof Error && error['code'] && error['details'] && error['metadata']) {
+			// grpc-js Error
+			return;
+		}
 		Logger.error('Unhandled Promise Rejection:', error);
 	})
 	.on('uncaughtException', async (error) => {

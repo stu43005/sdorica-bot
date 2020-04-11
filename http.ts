@@ -1,6 +1,6 @@
-import dateFormat from "dateformat";
 import * as Discord from 'discord.js';
 import express, { NextFunction, Request, Response } from 'express';
+import moment from "moment";
 import { Logger } from "./logger";
 
 function logErrors(err: any, req: Request, res: Response, next: NextFunction) {
@@ -24,10 +24,10 @@ export function initHttp(client: Discord.Client) {
 
 	app.get('/', (req, res) => {
 		res.render('index', {
-			readyAt: client.readyAt?.toISOString(),
+			readyAt: client.readyAt ? moment(client.readyAt).format('YYYY-MM-DD HH:mm:ss [UTC]ZZ') : '',
 			uptime: client.uptime,
 			ping: client.ws.ping,
-			date: dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss 'UTC'o"),
+			date: moment().format('YYYY-MM-DD HH:mm:ss [UTC]ZZ'),
 		});
 	});
 

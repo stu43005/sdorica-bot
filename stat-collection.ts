@@ -1,6 +1,6 @@
-import dateFormat from 'dateformat';
 import * as Discord from "discord.js";
 import admin from "firebase-admin";
+import moment from 'moment';
 import { Subject } from "rxjs";
 import { auditTime } from "rxjs/operators";
 import { Logger } from "./logger";
@@ -18,7 +18,6 @@ export class StatCollection {
 
 	private meta: StatGuild;
 	private temp: StatData;
-	private voiceTime: Record<string, number> = {};
 	private update$ = new Subject<void>();
 
 	constructor(private guild: Discord.Guild) {
@@ -62,7 +61,7 @@ export class StatCollection {
 		}
 		metaRef.set(meta, { merge: true });
 
-		const dateStr = dateFormat(new Date(), "yyyy-mm-dd");
+		const dateStr = moment().format('YYYY-MM-DD');
 		const dailyRef = metaRef.collection("daily").doc(dateStr);
 		const dailyDoc = await dailyRef.get();
 		let daily = dailyDoc.data() as StatData;

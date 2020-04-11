@@ -1,11 +1,15 @@
 import config from 'config';
 import { Client, FriendlyError } from "discord.js-commando";
 import admin from "firebase-admin";
+import moment from 'moment';
 import path from "path";
 import { FirestoreProvider } from "./firestore-provider";
 import { initHttp } from "./http";
 import { Logger } from "./logger";
 import { isDevMode } from "./utils";
+
+// init moment locale
+moment.locale('zh-tw');
 
 // process event handle
 process

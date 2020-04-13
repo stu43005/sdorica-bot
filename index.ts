@@ -1,8 +1,10 @@
 import config from 'config';
+import { CronJob } from 'cron';
 import { Client, FriendlyError } from "discord.js-commando";
 import admin from "firebase-admin";
 import moment from 'moment';
 import path from "path";
+import requireAll from "require-all";
 import { FirestoreProvider } from "./firestore-provider";
 import { initHttp } from "./http";
 import { Logger } from "./logger";
@@ -108,3 +110,16 @@ client.login(config.get("token"));
 
 // init express server
 initHttp(client);
+
+// init cron
+const jobs: Record<string, CronJob> = requireAll({
+	dirname: path.join(__dirname, 'crons'),
+	filter: /^([^\.].*)(?<!\.ignore)\.cron\.ts$/,
+	resolve: function (module) {
+		return module.default;
+	},
+});
+
+Object.values(jobs).forEach(job => {
+	job.start();
+});

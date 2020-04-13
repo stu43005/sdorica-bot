@@ -139,7 +139,7 @@ export class StatCollection {
 
 }
 
-function mergeData(base: StatData, temp: StatData) {
+export function mergeData(base: StatData, temp: StatData) {
 	base.members = temp.members;
 
 	if (temp.messages) base.messages = (base.messages || 0) + temp.messages;

@@ -99,7 +99,11 @@ export default class QuoteCommand extends Command2 {
 
 			const reply = message.content.substr(message.content.indexOf(quoteMessage.id) + quoteMessage.id.length).trim();
 			if (reply) {
-				sendedMessages.push(await message.channel.send(`**${message.member ? message.member.displayName : message.author.tag}'s reply:**\n${reply.replace('@everyone', '@еveryone').replace('@here', '@hеre')}`));
+				sendedMessages.push(await message.channel.send(`**${message.member ? message.member.displayName : message.author.tag}'s reply:**\n${reply}`, {
+					allowedMentions: {
+						parse: [],
+					},
+				}));
 			}
 			return sendedMessages;
 		}

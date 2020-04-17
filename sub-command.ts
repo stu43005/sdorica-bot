@@ -72,7 +72,7 @@ export class SubCommand extends Command2 {
 			const collector = new ArgumentCollector(this.client, funcInfo.args);
 			const collResult = await collector.obtain(message, provided);
 			if (collResult.cancelled || !collResult.values) {
-				this.client.emit('commandCancel', this, collResult.cancelled, message, collResult);
+				this.client.emit('commandCancel', this, collResult.cancelled || 'noValues', message);
 				return message.reply('Cancelled command.');
 			}
 			funcArgs.argsResult = collResult.values;

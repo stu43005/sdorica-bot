@@ -1,4 +1,4 @@
-import { Command, CommandGroup, GuildSettingsHelper } from 'discord.js-commando';
+import { ArgumentType, Command, CommandGroup, CommandoRegistry, GuildSettingsHelper, SettingProvider } from 'discord.js-commando';
 type CommandResolvable = Command | string;
 type CommandGroupResolvable = CommandGroup | string;
 
@@ -179,5 +179,22 @@ declare module 'discord.js' {
 		 * @return {string}
 		 */
 		commandUsage(command?: string, user?: User): string;
+	}
+
+	interface ClientEvents {
+		commandBlock: [Message, string, Object | undefined];
+		commandCancel: [Command, string, Message];
+		commandError: [Command, Error, Message, object | string | string[], boolean];
+		commandPrefixChange: [Guild, string];
+		commandRegister: [Command, CommandoRegistry];
+		commandReregister: [Command, Command];
+		commandRun: [Command, Promise<any>, Message, object | string | string[], boolean];
+		commandStatusChange: [Guild, Command, boolean];
+		commandUnregister: [Command];
+		groupRegister: [CommandGroup, CommandoRegistry];
+		groupStatusChange: [Guild, CommandGroup, boolean];
+		providerReady: [SettingProvider];
+		typeRegister: [ArgumentType, CommandoRegistry];
+		unknownCommand: [Message];
 	}
 }

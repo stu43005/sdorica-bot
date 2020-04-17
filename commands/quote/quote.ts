@@ -11,7 +11,7 @@ export default class QuoteCommand extends Command2 {
 			memberName: 'quote',
 			description: '使用此指令引用一則訊息',
 			examples: ['quote 603983888141778954', 'q 603983975634960404 Your reply'],
-			patterns: [/^>q(uote)? (\d+)/],
+			patterns: [/^>[qQ](uote)? (\d+)/i],
 			guildOnly: true,
 			throttling: {
 				usages: 2,
@@ -67,7 +67,7 @@ export default class QuoteCommand extends Command2 {
 
 	async run2(message: Discord.Message, args: string[]) {
 
-		if (args[0].startsWith(">q")) {
+		if (args[0].toLowerCase().startsWith(">q")) {
 			args.shift();
 			args.shift();
 		}

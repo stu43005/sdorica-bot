@@ -172,5 +172,15 @@ function getTemplate(message: Discord.Message, count: number): [string, Discord.
 	embed.setAuthor(message.author.tag, message.author.displayAvatarURL());
 	embed.addField("Original", `[Show me!](${(message as unknown as Discord.Message).url})`);
 	embed.setTimestamp(message.createdAt);
+	if (message.attachments && message.attachments.size > 0) {
+		if (message.attachments.size == 1 && String(message.attachments.array()[0].url).match(/(.jpg|.jpeg|.png|.gif|.gifv|.webp|.bmp)$/i)) {
+			embed.setImage(message.attachments.array()[0].url);
+		}
+		else {
+			message.attachments.forEach(attachment => {
+				embed.addField("Attachment", `[${attachment.name}](${attachment.url})`, false);
+			});
+		}
+	}
 	return [`${count} ⭐ in <#${message.channel.id}>`, embed];
 }

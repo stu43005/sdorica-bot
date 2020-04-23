@@ -390,7 +390,9 @@ class CalcData {
 			else if (this.rank == 3 && reaction.emoji.name === '➖') {
 				this.setSubrank(this.subrank - 1);
 			}
-			reaction.users.remove(this.sender);
+			if (message.channel.type !== "dm") {
+				reaction.users.remove(this.sender);
+			}
 			message.edit(this.generateEmbed());
 		});
 		collector.on('end', collected => {

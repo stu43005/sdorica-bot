@@ -29,7 +29,7 @@ export function showCooldown(message: Discord.Message, time?: number) {
 
 export function unreact(message: Discord.Message, emoji: string, user?: Discord.User | Discord.GuildMember | string) {
 	const reaction = message.reactions.resolve(emoji);
-	if (reaction) {
+	if (reaction && message.channel.type !== "dm") {
 		reaction.users.remove(user || message.client.user || undefined);
 	}
 }

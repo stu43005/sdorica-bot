@@ -153,11 +153,18 @@ async function sendStarboard(setting: StarboardSetting, message: Discord.Message
 
 	const starData = mapping.getStarboardMessage(message);
 	if (starData) {
-		const starboardMessage = await starboardChannel.messages.fetch(starData.starboardMessageId);
-		const edit = starboardMessage.edit(...template);
-		mapping.setTemporarilyTimer(message, edit);
-		await edit;
-		mapping.updateCount(message, count);
+		try {
+			const starboardMessage = await starboardChannel.messages.fetch(starData.starboardMessageId);
+			const edit = starboardMessage.edit(...template);
+			mapping.setTemporarilyTimer(message, edit);
+			await edit;
+			mapping.updateCount(message, count);
+		} catch (error) {
+			const allowErrors: number[] = [Discord.Constants.APIErrors.UNKNOWN_MESSAGE];
+			if (!(error instanceof Discord.DiscordAPIError && allowErrors.includes(error.code))) {
+				throw error;
+			}
+		}
 		return;
 	}
 	const send = starboardChannel.send(...template);

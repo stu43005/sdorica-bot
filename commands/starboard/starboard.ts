@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { CommandoClient } from "discord.js-commando";
+import { Logger } from "../../logger";
 import { SubCommand } from "../../sub-command";
 import { StarboardStore } from "./starboard-store.ignore";
 
@@ -126,10 +127,7 @@ export default class StarboardCommand extends SubCommand {
 			}
 
 			if (messageReaction.emoji.name == "⭐") {
-				if (messageReaction.partial) await messageReaction.fetch();
-				const senderId = message.author.id;
-				const senderStared = messageReaction.users.resolve(senderId);
-				const count = (messageReaction.count ?? 0) - (senderStared ? 1 : 0);
+				const count = await getStarCount(messageReaction);
 				if (count >= starboard.limit) {
 					if (message.partial) await message.fetch();
 					await sendStarboard(starboard, message, count);
@@ -141,6 +139,15 @@ export default class StarboardCommand extends SubCommand {
 
 }
 
+async function getStarCount(messageReaction: Discord.MessageReaction) {
+	const message = messageReaction.message;
+	if (messageReaction.partial) await messageReaction.fetch();
+	const senderId = message.author.id;
+	const senderStared = messageReaction.users.resolve(senderId);
+	const count = (messageReaction.count ?? 0) - (senderStared ? 1 : 0);
+	return count;
+}
+
 async function sendStarboard(setting: StarboardSetting, message: Discord.Message, count: number) {
 	if (!message.guild) return;
 	if (!setting.channel) return;
@@ -149,28 +156,37 @@ async function sendStarboard(setting: StarboardSetting, message: Discord.Message
 	const template = getTemplate(message, count);
 
 	const mapping = await StarboardStore.fromGuild(message.guild);
-	await mapping.getTemporarilyTimer(message);
-
-	const starData = mapping.getStarboardMessage(message);
-	if (starData) {
-		try {
-			const starboardMessage = await starboardChannel.messages.fetch(starData.starboardMessageId);
-			const edit = starboardMessage.edit(...template);
-			mapping.setTemporarilyTimer(message, edit);
-			await edit;
-			mapping.updateCount(message, count);
-		} catch (error) {
-			const allowErrors: number[] = [Discord.Constants.APIErrors.UNKNOWN_MESSAGE];
-			if (!(error instanceof Discord.DiscordAPIError && allowErrors.includes(error.code))) {
-				throw error;
-			}
-		}
-		return;
+	try {
+		await mapping.getTemporarilyTimer(message);
+	} catch (error) {
 	}
-	const send = starboardChannel.send(...template);
-	mapping.setTemporarilyTimer(message, send);
-	const sendedMessage = await send;
-	mapping.addStarboardMessage(message, count, sendedMessage);
+
+	mapping.setTemporarilyTimer(message, (async () => {
+		const starData = mapping.getStarboardMessage(message);
+		if (starData) {
+			try {
+				const starboardMessage = await starboardChannel.messages.fetch(starData.starboardMessageId);
+				const messageReaction = message.reactions.resolve('⭐');
+				if (messageReaction) {
+					const count = await getStarCount(messageReaction);
+					if (starData.count < count) {
+						mapping.updateCount(message, count);
+						await starboardMessage.edit(...template);
+					}
+				}
+			} catch (error) {
+				const allowErrors: number[] = [Discord.Constants.APIErrors.UNKNOWN_MESSAGE];
+				if (!(error instanceof Discord.DiscordAPIError && allowErrors.includes(error.code))) {
+					throw error;
+				}
+			}
+			return;
+		}
+		const sendedMessage = await starboardChannel.send(...template);
+		mapping.addStarboardMessage(message, count, sendedMessage);
+	})().catch(reason => {
+		Logger.error('[starboard] [sendStarboard]', reason);
+	}));
 }
 
 function getTemplate(message: Discord.Message, count: number): [string, Discord.MessageEmbed] {

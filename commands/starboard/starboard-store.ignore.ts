@@ -22,7 +22,7 @@ export class StarboardStore {
 	}
 
 	private temp: Record<string, StarboardData> = {};
-	private adding: Record<string, Promise<Discord.Message | Discord.Message[]>> = {};
+	private adding: Record<string, Promise<void>> = {};
 	private update$ = new Subject<void>();
 
 	private constructor(private guild: Discord.Guild) {
@@ -52,7 +52,7 @@ export class StarboardStore {
 		return this.adding[message.id] || Promise.resolve();
 	}
 
-	public setTemporarilyTimer(message: Discord.Message, timer: Promise<Discord.Message | Discord.Message[]>) {
+	public setTemporarilyTimer(message: Discord.Message, timer: Promise<void>) {
 		this.adding[message.id] = timer;
 		this.guild.client.setTimeout(() => {
 			delete this.adding[message.id];

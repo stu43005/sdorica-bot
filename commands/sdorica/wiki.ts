@@ -399,7 +399,14 @@ class CalcData {
 			message.edit(this.generateEmbed());
 		});
 		collector.on('end', collected => {
-			message.reactions.removeAll();
+			if (message.channel.type !== "dm") {
+				message.reactions.removeAll();
+			} else if (message.client.user) {
+				message.reactions.resolve("⬆")?.users.remove(message.client.user);
+				message.reactions.resolve("⬇")?.users.remove(message.client.user);
+				message.reactions.resolve("➕")?.users.remove(message.client.user);
+				message.reactions.resolve("➖")?.users.remove(message.client.user);
+			}
 			this.waitingReaction = false;
 			message.edit(this.generateEmbed());
 		});

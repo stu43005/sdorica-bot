@@ -1,10 +1,9 @@
 import { tify } from 'chinese-conv';
 import * as Discord from "discord.js";
 import { CommandoClient } from "discord.js-commando";
-import { URLSearchParams } from 'url';
 import { cache } from '../../cache';
-import { Command2 } from '../../typings/discord.js-commando/command';
 import { Logger } from '../../logger';
+import { Command2 } from '../../typings/discord.js-commando/command';
 import { getOnce, numMultiply } from '../../utils';
 import { findTemplate, getMWBot, readTextWithCache } from "../../wiki";
 
@@ -29,28 +28,30 @@ const skillText = [
 	["參謀", "A1"],
 ];
 
-const charAlias: { [name: string]: string[] } = {
+const charAlias: { [name: string]: (string | string[])[] } = {
 	"PAFF": ["paff"],
 	"Nora": ["nora"],
 	"NEKO＃ΦωΦ": ["NEKO", "NEKO#ΦωΦ"],
 	"Ivy": ["ivy", "lvy"],
 	"Deemo": ["deemo"],
-	"黯月": ["暗月", "闇月"],
+	"黯月": ["暗月", "闇月", "按月", "案月", ["白(黯|暗|闇|按|案)", "Alt"]],
 	"蠢熊勇士": ["^蠢熊$", "^蠢雄勇士", "^蠢雄$", "傻氣男友", "巨槌"],
 	"蘇菲": ["團長"],
 	"麗莎SP": ["^lolisa"],
 	"麗莎": ["^lisa"],
 	"龐SP": ["黑龐"],
+	"龐": [["白龐", "Alt"]],
 	"黛安娜": ["戴安娜", "女王"],
 	"戴菲斯": ["老蛇"],
+	"璃SP": ["熊璃"],
 	"璃": ["^離", "leah"],
 	"瑪莉亞": ["瑪麗亞", "玛丽亚"],
 	"實驗體": ["敷符"],
-	"奧斯塔": ["醫生"],
+	"奧斯塔": ["醫生", ["紅奧", "Alt"]],
 	"雅辛托斯SP": ["^忍者阿辛$"],
 	"雅辛托斯": ["阿辛"],
-	"普吉": ["puggi"],
-	"揚波": ["楊波"],
+	"普吉": ["puggi", ["黑普吉?", "Alt"]],
+	"揚波": ["楊波", ["真人", "Alt"]],
 	"傑羅姆SP": ["假面騎士", "^假面$"],
 	"傑羅姆": ["小帥哥", "副官"],
 	"莫里斯": ["莫裡斯"],
@@ -61,11 +62,11 @@ const charAlias: { [name: string]: string[] } = {
 	"夏爾SP": ["^C4$"],
 	"夏爾": ["院長"],
 	"面具小姐": ["^面具$", "面具女孩", "Celia"],
-	"迪蘭": ["辣個男人", "狄蘭", "^dl"],
+	"迪蘭": [["黑(迪|狄)蘭?", "Alt"], "辣個男人", "狄蘭", "^dl"],
 	"泉": ["一隻米", "izumi"],
-	"芙蕾莉卡": ["芙雷利卡", "奶子", "路希翁"],
+	"芙蕾莉卡": ["芙雷利卡", "奶子", "路希翁", "將軍"],
 	"法蒂瑪": ["豹姐"],
-	"希歐": ["^co"],
+	"希歐": ["^co", "西歐"],
 	"艾利歐": ["小天使"],
 	"米莎": ["misa", "小蛇"],
 	"安潔莉亞SP": ["^安潔SP$"],
@@ -115,19 +116,27 @@ export default class WikiCommand extends Command2 {
 
 			let name = args.shift()!.replace(/sp/i, "SP").replace(/mz/i, "MZ");
 
-			const skillbookname = name.match(skillbookRegexp);
-			if (skillbookname) {
+			if (name.match(skillbookRegexp)) {
 				name = name.replace(new RegExp(skillbookRegexp, "ig"), "");
 				args.push("Alt");
+			}
+
+			if (name.match(skinRegexp)) {
+				name = name.replace(new RegExp(skinRegexp, "ig"), "");
+				args.push("Skin");
 			}
 
 			charAlias: for (const key in charAlias) {
 				if (charAlias.hasOwnProperty(key)) {
 					const aliases = charAlias[key];
 					for (let i = 0; i < aliases.length; i++) {
-						const str = aliases[i];
+						const item = aliases[i];
+						const [str, type] = typeof item === 'string' ? [item, null] : item;
 						if (name.match(new RegExp(str, "i"))) {
 							name = name.replace(new RegExp(str, "i"), key);
+							if (type) {
+								args.push(type);
+							}
 							break charAlias;
 						}
 					}
@@ -157,8 +166,7 @@ export default class WikiCommand extends Command2 {
 			for (let i = rankText.length - 1; i >= 0; i--) {
 				for (let j = 0; j < rankText[i].length; j++) {
 					const str = rankText[i][j];
-					const rankmatch = arg.match(new RegExp(str, "i"));
-					if (rankmatch) {
+					if (arg.match(new RegExp(str, "i"))) {
 						rank = i;
 						arg = arg.replace(new RegExp(str, "i"), "");
 					}
@@ -195,8 +203,7 @@ export default class WikiCommand extends Command2 {
 				const strs = skillText[i];
 				for (let j = 0; j < strs.length; j++) {
 					const str = strs[j];
-					const skillmatch = arg.match(new RegExp(str, "i"));
-					if (skillmatch) {
+					if (arg.match(new RegExp(str, "i"))) {
 						showSkills.push(strs[0]);
 						arg = arg.replace(new RegExp(str, "i"), "");
 						break;
@@ -204,15 +211,13 @@ export default class WikiCommand extends Command2 {
 				}
 			}
 
-			const skillbookmatch = arg.match(skillbookRegexp);
-			if (skillbookmatch) {
+			if (arg.match(skillbookRegexp)) {
 				isSkillBook = true;
 				arg = arg.replace(new RegExp(skillbookRegexp, "ig"), "");
 			}
 
 			if (!isSkillBook) {
-				const skinmatch = arg.match(skinRegexp);
-				if (skinmatch) {
+				if (arg.match(skinRegexp)) {
 					isSkin = true;
 					arg = arg.replace(new RegExp(skinRegexp, "ig"), "");
 				}

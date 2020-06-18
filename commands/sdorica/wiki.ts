@@ -513,7 +513,7 @@ export function applyAtk(info: string, atk: number): string {
 }
 
 export function toLevel(base: number, level: number): number {
-	return Math.ceil(numMultiply(base, Math.pow(1.06, level - 1)));
+	return Math.floor(numMultiply(base, Math.pow(1.06, level - 1)));
 }
 
 const rankAttr = [1, 1.08, 1.2, 1.35];
@@ -525,5 +525,5 @@ export function getRankAttr(rank: number, subrank: number) {
 }
 
 export function calcStatistics(base: number, level: number, rank: number, subrank: number, es: number) {
-	return Math.ceil(numMultiply(toLevel(base, level), getRankAttr(rank, subrank))) + subrank * es;
+	return Math.floor(numMultiply(toLevel(base, level), getRankAttr(rank, subrank))) + subrank * es;
 }

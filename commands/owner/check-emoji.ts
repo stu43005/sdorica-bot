@@ -63,11 +63,15 @@ export default class CheckEmojiCommand extends Command2 {
 		});
 		data2 = data2.sort((a, b) => a.count - b.count);
 
-		return message.say(data2.filter(e => e.count > 0).map(e => {
-			return `${e.emoji} ${e.name}: ${e.count}`;
-		}).join('\n') + `\n\nNo use:\n` + data2.filter(e => e.count == 0).map(e => {
-			return `${e.emoji} ${e.name}`;
-		}).join('\n'));
+		const data3: string[] = data2.filter(e => e.count > 0).map(e => {
+			return `${e.emoji}: ${e.count}`;
+		}).concat(['', 'No use:']).concat(data2.filter(e => e.count == 0).map(e => {
+			return `${e.emoji}`;
+		}).join(' '));
+
+		return message.say(data3.join('\n'), {
+			split: true,
+		});
 	}
 
 }

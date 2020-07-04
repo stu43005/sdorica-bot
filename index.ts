@@ -112,7 +112,7 @@ client.login(config.get("token"));
 initHttp(client);
 
 // init cron
-const jobs: Record<string, CronJob> = requireAll({
+const jobs: Record<string, (client: Client) => CronJob> = requireAll({
 	dirname: path.join(__dirname, 'crons'),
 	filter: /^([^\.].*)(?<!\.ignore)\.cron\.ts$/,
 	resolve: function (module) {
@@ -121,5 +121,5 @@ const jobs: Record<string, CronJob> = requireAll({
 });
 
 Object.values(jobs).forEach(job => {
-	job.start();
+	job(client).start();
 });

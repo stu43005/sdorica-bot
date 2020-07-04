@@ -1,4 +1,5 @@
 import { CronJob } from "cron";
+import { Client } from "discord.js-commando";
 import admin from "firebase-admin";
 import moment from "moment";
 import { mergeData } from "../stat-collection";
@@ -43,7 +44,9 @@ async function oldData() {
 // oldData();
 
 // At 00:00
-export default new CronJob('0 0 * * *', () => {
-	const lastday = moment().subtract(7, 'days');
-	job(lastday);
-});
+export default function (client: Client) {
+	return new CronJob('0 0 * * *', () => {
+		const lastday = moment().subtract(7, 'days');
+		job(lastday);
+	});
+}

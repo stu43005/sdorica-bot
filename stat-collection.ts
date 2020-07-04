@@ -154,7 +154,7 @@ export function mergeData(base: StatData, temp: StatData) {
 	mergeRecordData(base, temp, 'memes');
 }
 
-function mergeRecordData(base: StatData, temp: StatData, type: string) {
+export function mergeRecordData(base: StatData, temp: StatData, type: string) {
 	if (temp[type]) {
 		if (!base[type]) base[type] = {};
 		Object.keys(temp[type]).forEach(key => {
@@ -163,7 +163,7 @@ function mergeRecordData(base: StatData, temp: StatData, type: string) {
 	}
 }
 
-function mergeDoubleRecordData(base: StatData, temp: StatData, type: string) {
+export function mergeDoubleRecordData(base: StatData, temp: StatData, type: string) {
 	if (temp[type]) {
 		if (!base[type]) base[type] = {};
 		Object.keys(temp[type]).forEach(key => {

@@ -20,7 +20,7 @@ export default class StarboardAnalyticsCommand extends Command2 {
 			args: [
 				{
 					type: 'channel',
-					key: 'text-channel',
+					key: 'channel',
 					prompt: '哪一個是Starboard的頻道？',
 				}
 			],

@@ -185,6 +185,6 @@ function parseResult(result: string): GashaponResult {
 
 function formatResult(results: GashaponResult[]) {
 	return results.map(result => {
-		return `${rankEmojis[result.rank] ?? ""} ${result.hero} ${heroEmojis[result.hero] ?? ""}`;
+		return `${rankEmojis[result.rank] ?? result.rank} ${result.hero} ${heroEmojis[result.hero] ?? ""}`;
 	}).join("\n");
 }

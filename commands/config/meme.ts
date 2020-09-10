@@ -25,7 +25,7 @@ export default class MemeCommand extends Command2 {
 					key: 'type',
 					type: 'string',
 					prompt: '關鍵字匹配類型?',
-					oneOf: ['add', 'create', 'n', 'normal', 's', 'strict', 'e', 'exact', 'sw', 'startswith', 'ew', 'endswith'],
+					oneOf: ['add', 'create', 'n', 'normal', 's', 'strict', 'e', 'exact', 'sw', 'startswith', 'ew', 'endswith', 'remove', 'delete'],
 				},
 				{
 					key: 'keyword',
@@ -67,22 +67,32 @@ export default class MemeCommand extends Command2 {
 	}
 
 	async run2(message: Discord.Message, { type, keyword, url }: { type: string, keyword: string, url: string }) {
+		let sendedMessages: Discord.Message[] = [];
 		if (!message.guild) return null;
 
 		const matchtype = getMatchType(type);
 		if (matchtype && keyword && url) {
 			const memes: MemeItem[] = message.guild.settings.get('memes', []);
-			const newitem: MemeItem = {
-				uuid: uuid(),
-				keyword,
-				url,
-				matchtype,
-			};
-			memes.push(newitem);
+			if (matchtype == MatchType.Remove) {
+				const itemIndex = memes.findIndex(m => m.keyword === keyword && m.url === url);
+				if (itemIndex !== -1) {
+					memes.splice(itemIndex, 1);
+					sendedMessages = arrayConcat(sendedMessages, await message.say(`Meme removed.`));
+				} else {
+					return message.say(`Meme not found.`);
+				}
+			} else {
+				const newitem: MemeItem = {
+					uuid: uuid(),
+					keyword,
+					url,
+					matchtype,
+				};
+				memes.push(newitem);
+				sendedMessages = arrayConcat(sendedMessages, await message.say(`Meme added. Preview:`));
+				sendedMessages = arrayConcat(sendedMessages, await sendMeme(message, newitem));
+			}
 			await message.guild.settings.set('memes', memes);
-
-			let sendedMessages = arrayConcat([], await message.say(`Meme added. Preview:`));
-			sendedMessages = arrayConcat(sendedMessages, await sendMeme(message, newitem));
 			return sendedMessages;
 		}
 		return null;
@@ -124,6 +134,9 @@ export function getMatchType(str: string) {
 		case "ew":
 		case "endswith":
 			return MatchType.EndsWith;
+		case "remove":
+		case "delete":
+			return MatchType.Remove;
 	}
 	return null;
 }
@@ -152,4 +165,5 @@ export enum MatchType {
 	Exact = "exact",
 	StartsWith = "startswith",
 	EndsWith = "endswith",
+	Remove = "remove",
 }

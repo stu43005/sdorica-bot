@@ -15,6 +15,7 @@ const rankText = [
 	["三階", "SSR", "金階", "3階"],
 ];
 const subrankRegexp = /\+(\d+)/;
+const reinforceRegexp = /(\++)(?!\d)/;
 const levelRegexp = /(?<![\+\dOPA])(\d+)(?!階|魂|O)/i;
 const skillbookRegexp = /(技能書|Alt|Skill\s?Book|SB)/i;
 const skinRegexp = /(造型書|Skin)/i;
@@ -158,6 +159,7 @@ export default class WikiCommand extends Command2 {
 			let level = MaxLevel;
 			let rank = 3;
 			let subrank = 0;
+			let reinforce = 0;
 			const showSkills: string[] = [];
 			let isSkillBook = false;
 			let isSkin = false;
@@ -173,7 +175,7 @@ export default class WikiCommand extends Command2 {
 				}
 			}
 
-			if (rank == 3) {
+			if (rank >= 3) {
 				const submatch = arg.match(subrankRegexp);
 				if (submatch) {
 					subrank = parseInt(submatch[1], 10);
@@ -184,6 +186,11 @@ export default class WikiCommand extends Command2 {
 					else if (subrank > MaxResonanceLevel) {
 						subrank = MaxResonanceLevel;
 					}
+				}
+				const reinforcematch = arg.match(reinforceRegexp);
+				if (reinforcematch) {
+					reinforce = reinforcematch[1].length;
+					arg = arg.replace(new RegExp(reinforceRegexp, "g"), "");
 				}
 			}
 
@@ -223,7 +230,7 @@ export default class WikiCommand extends Command2 {
 				}
 			}
 
-			const data = new CalcData(message, heroData, name, level, rank, subrank, showSkills, isSkillBook, isSkin);
+			const data = new CalcData(message, heroData, name, level, rank, subrank, reinforce, showSkills, isSkillBook, isSkin);
 			const sendedMessages = await data.init();
 			return sendedMessages;
 		}
@@ -284,6 +291,15 @@ class HeroData {
 					const rankPart = template.parts.find(p => p.name == str);
 					if (rankPart && rankPart.value) {
 						this.ranks[str] = rankPart.value;
+					}
+				}
+				const rankReinforce = template.parts.find(p => p.name == "三階技能強化次數");
+				if (this.ranks['三階'] && rankReinforce && rankReinforce.value) {
+					const n = parseInt(rankReinforce.value, 10);
+					if (!isNaN(n)) {
+						for (let i = 1; i <= n; i++) {
+							this.ranks[`三階${'+'.repeat(i)}`] = this.ranks['三階'];
+						}
 					}
 				}
 				const rankAlt = template.parts.find(p => p.name == "Alt");
@@ -350,6 +366,7 @@ class CalcData {
 		private level: number,
 		private rank: number,
 		private subrank: number,
+		private reinforce: number,
 		private showSkills: string[],
 		private isSkillBook: boolean,
 		private isSkin: boolean,
@@ -380,7 +397,14 @@ class CalcData {
 		while (this.rank < 3 && !rankName[rankText[this.rank][0]]) {
 			this.rank++;
 		}
-		this.rankStr = this.isSkillBook ? "Alt" : this.isSkin ? "Skin" : rankText[this.rank][0];
+		if (this.rank >= 3) {
+			while (this.reinforce > 0 && !rankName[rankText[this.rank][0] + '+'.repeat(this.reinforce)]) {
+				this.reinforce--;
+			}
+		} else {
+			this.reinforce = 0;
+		}
+		this.rankStr = this.isSkillBook ? "Alt" : this.isSkin ? "Skin" : rankText[this.rank][0] + '+'.repeat(this.reinforce);
 		this.rankName = rankName[this.rankStr];
 	}
 
@@ -396,10 +420,10 @@ class CalcData {
 			else if (reaction.emoji.name === '⬇') {
 				this.setLevel(this.level - 1);
 			}
-			else if (this.rank == 3 && reaction.emoji.name === '➕') {
+			else if (this.rank >= 3 && reaction.emoji.name === '➕') {
 				this.setSubrank(this.subrank + 1);
 			}
-			else if (this.rank == 3 && reaction.emoji.name === '➖') {
+			else if (this.rank >= 3 && reaction.emoji.name === '➖') {
 				this.setSubrank(this.subrank - 1);
 			}
 			if (message.channel.type !== "dm") {
@@ -424,7 +448,7 @@ class CalcData {
 	private async doReact(message: Discord.Message) {
 		await message.react("⬆");
 		await message.react("⬇");
-		if (this.rank == 3) {
+		if (this.rank >= 3) {
 			await message.react("➕");
 			await message.react("➖");
 		}
@@ -458,8 +482,8 @@ class CalcData {
 	}
 
 	private generateEmbed() {
-		const atk = calcStatistics(this.heroData.atk, this.level, this.rank, this.subrank, 50);
-		const hp = calcStatistics(this.heroData.hp, this.level, this.rank, this.subrank, 300);
+		const atk = calcStatistics(this.heroData.atk, this.level, this.rank, this.subrank, 'atk');
+		const hp = calcStatistics(this.heroData.hp, this.level, this.rank, this.subrank, 'hp');
 
 		let pageName = this.name;
 		let imageName = this.name;
@@ -473,7 +497,7 @@ class CalcData {
 		const embed = new Discord.MessageEmbed();
 		embed.setThumbnail(`https://sdorica.xyz/index.php/特殊:重新導向/file/${imageName}_Potrait_Icons_SSR.png`);
 		embed.setTitle(pageName);
-		embed.setDescription(`等級: ${this.level}, 階級: ${rankText[this.rank][0]}, 加值: +${this.subrank}${this.isSkillBook ? ", 技能書" : this.isSkin ? ", 造型書" : ""}`);
+		embed.setDescription(`等級: ${this.level}, 階級: ${this.rankStr}, 加值: +${this.subrank}${this.isSkillBook ? ", 技能書" : this.isSkin ? ", 造型書" : ""}`);
 		embed.setURL(`https://sdorica.xyz/index.php/${encodeURIComponent(pageName)}`);
 		embed.addField('🗡️ 攻擊', atk || '-', true);
 		embed.addField('❤️ 體力', hp || '-', true);
@@ -513,17 +537,27 @@ export function applyAtk(info: string, atk: number): string {
 }
 
 export function toLevel(base: number, level: number): number {
-	return Math.floor(numMultiply(base, Math.pow(1.06, level - 1)));
+	return numMultiply(base, Math.pow(1.06, level - 1));
 }
 
 const rankAttr = [1, 1.08, 1.2, 1.35];
-export function getRankAttr(rank: number, subrank: number) {
-	let subAttr = 1;
-	if (subrank > 10) subAttr = numMultiply(Math.pow(1.01, 5), Math.pow(1.03, subrank - 10));
-	else if (subrank > 5) subAttr = Math.pow(1.01, subrank - 5);
-	return Math.round(numMultiply(rankAttr[rank], subAttr) * 1000) / 1000;
+export function tierMultiper(rank: number) {
+	return rankAttr[rank] || 1;
 }
 
-export function calcStatistics(base: number, level: number, rank: number, subrank: number, es: number) {
-	return Math.floor(numMultiply(toLevel(base, level), getRankAttr(rank, subrank))) + subrank * es;
+export function offsetMultiper2(subrank: number, type: 'hp' | 'atk') {
+	// hp
+	if (type == "hp") return Math.pow(1.03, subrank);
+	// atk
+	if (subrank > 10) return numMultiply(Math.pow(1.02, 5), numMultiply(Math.pow(1.025, 5), Math.pow(1.035, subrank - 10)));
+	if (subrank > 5) return numMultiply(Math.pow(1.02, 5), Math.pow(1.025, subrank - 5));
+	return Math.pow(1.02, subrank);
+}
+
+export function offsetMultiper(subrank: number, type: 'hp' | 'atk') {
+	return Math.round(offsetMultiper2(subrank, type) * 10000) / 10000;
+}
+
+export function calcStatistics(base: number, level: number, rank: number, subrank: number, type: 'hp' | 'atk') {
+	return Math.floor(numMultiply(toLevel(base, level), numMultiply(tierMultiper(rank), offsetMultiper(subrank, type))));
 }

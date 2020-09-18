@@ -132,11 +132,11 @@ export default class WikiCommand extends Command2 {
 					const aliases = charAlias[key];
 					for (let i = 0; i < aliases.length; i++) {
 						const item = aliases[i];
-						const [str, type] = typeof item === 'string' ? [item, null] : item;
+						const [str, ...type] = typeof item === 'string' ? [item] : item;
 						if (name.match(new RegExp(str, "i"))) {
 							name = name.replace(new RegExp(str, "i"), key);
-							if (type) {
-								args.push(type);
+							if (type.length) {
+								args.push(...type);
 							}
 							break charAlias;
 						}

@@ -72,6 +72,7 @@ const charAlias: { [name: string]: (string | string[])[] } = {
 	"米莎": ["misa", "小蛇"],
 	"安潔莉亞SP": ["^安潔SP$"],
 	"安潔莉亞": ["公主", "^安潔$"],
+	"吉哈薩哈": ["吉哈+", "哈{2,}", "二哈"],
 };
 
 let MaxLevel = 70;

@@ -36,6 +36,15 @@ export default class QuoteCommand extends Command2 {
 				else if (word.startsWith('https://discordapp.com/channels/')) {
 					word = word.slice('https://discordapp.com/channels/'.length);
 				}
+				else if (word.startsWith('https://canary.discord.com/channels/')) {
+					word = word.slice('https://canary.discord.com/channels/'.length);
+				}
+				else if (word.startsWith('https://ptb.discord.com/channels/')) {
+					word = word.slice('https://ptb.discord.com/channels/'.length);
+				}
+				else if (word.startsWith('https://discord.com/channels/')) {
+					word = word.slice('https://discord.com/channels/'.length);
+				}
 				else {
 					continue;
 				}

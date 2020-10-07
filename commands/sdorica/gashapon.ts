@@ -159,7 +159,7 @@ export default class GashaponCommand extends Command2 {
 				sendedMessage.edit(embedOriginUserData(message, resultEmbed));
 
 				if (data.counts.N == 10) {
-					sendedMessage.react("442401507296411651"); // Puggi
+					sendedMessage.react("673561486613938187"); // PuggiMask
 				}
 				if (data.counts.SSR > 0) {
 					sendedMessage.react("594945785553092608"); // torch

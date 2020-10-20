@@ -154,10 +154,10 @@ ${welcome.banTemplate ? "☑️" : "❎"} Ban message
 ${welcome.dmjoinTemplate ? "☑️" : "❎"} DM message`);
 
 		let sendedMessages = arrayConcat([], await message.say(status));
-		sendedMessages = arrayConcat([], await message.say(welcome.welcomeTemplate ? formatTemplate(message.guild, message.member, welcome.welcomeTemplate) : "<<No greet message>>"));
-		sendedMessages = arrayConcat([], await message.say(welcome.leaveTemplate ? formatTemplate(message.guild, message.member, welcome.leaveTemplate) : "<<No farewell message>>"));
-		sendedMessages = arrayConcat([], await message.say(welcome.banTemplate ? formatTemplate(message.guild, message.member, welcome.banTemplate) : "<<No ban message>>"));
-		sendedMessages = arrayConcat([], await message.say(welcome.dmjoinTemplate ? formatTemplate(message.guild, message.member, welcome.dmjoinTemplate) : "<<No dm message>>"));
+		sendedMessages = arrayConcat(sendedMessages, await message.say(welcome.welcomeTemplate ? formatTemplate(message.guild, message.member, welcome.welcomeTemplate) : "<<No greet message>>"));
+		sendedMessages = arrayConcat(sendedMessages, await message.say(welcome.leaveTemplate ? formatTemplate(message.guild, message.member, welcome.leaveTemplate) : "<<No farewell message>>"));
+		sendedMessages = arrayConcat(sendedMessages, await message.say(welcome.banTemplate ? formatTemplate(message.guild, message.member, welcome.banTemplate) : "<<No ban message>>"));
+		sendedMessages = arrayConcat(sendedMessages, await message.say(welcome.dmjoinTemplate ? formatTemplate(message.guild, message.member, welcome.dmjoinTemplate) : "<<No dm message>>"));
 		return sendedMessages;
 	}
 

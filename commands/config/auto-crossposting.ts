@@ -31,7 +31,7 @@ export default class AutoCrosspostingCommand extends Command2 {
 			if (message.channel.type !== 'news') return;
 
 			const channelId = message.channel.id;
-			const list: string[] = guild.settings.get(key);
+			const list: string[] = guild.settings.get(key, []);
 			if (list.indexOf(channelId) != -1) {
 				await message.crosspost();
 			}
@@ -42,7 +42,7 @@ export default class AutoCrosspostingCommand extends Command2 {
 		if (!message.guild) return null;
 		let result: Discord.Message[] = [];
 
-		const list: string[] = message.guild.settings.get(key);
+		const list: string[] = message.guild.settings.get(key, []);
 		const channelId = channel.id;
 
 		const index = list.indexOf(channelId);

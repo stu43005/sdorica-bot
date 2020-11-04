@@ -162,7 +162,7 @@ async function sendStarboard(setting: StarboardSetting, message: Discord.Message
 	}
 
 	mapping.setTemporarilyTimer(message, (async () => {
-		const starData = mapping.getStarboardMessage(message);
+		const starData = await mapping.getItem(message);
 		if (starData) {
 			try {
 				const starboardMessage = await starboardChannel.messages.fetch(starData.starboardMessageId);
@@ -170,7 +170,7 @@ async function sendStarboard(setting: StarboardSetting, message: Discord.Message
 				if (messageReaction) {
 					const count = await getStarCount(messageReaction);
 					if (starData.count < count) {
-						mapping.updateCount(message, count);
+						await mapping.addStarboardMessage(message, count, starboardMessage);
 						await starboardMessage.edit(...template);
 					}
 				}
@@ -183,7 +183,7 @@ async function sendStarboard(setting: StarboardSetting, message: Discord.Message
 			return;
 		}
 		const sendedMessage = await starboardChannel.send(...template);
-		mapping.addStarboardMessage(message, count, sendedMessage);
+		await mapping.addStarboardMessage(message, count, sendedMessage);
 	})().catch(reason => {
 		Logger.error('[starboard] [sendStarboard]', reason);
 	}));

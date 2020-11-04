@@ -1,12 +1,20 @@
 import * as Discord from "discord.js";
 import admin from "firebase-admin";
-import { Subject } from "rxjs";
-import { auditTime } from "rxjs/operators";
 
 interface StarboardData {
 	starboardMessageId: string;
 	senderId: string;
 	senderName: string;
+	count: number;
+}
+
+interface StarboardDataNew {
+	messageId: string;
+	channelId: string;
+	starboardMessageId: string;
+	senderId: string;
+	senderName: string;
+	message: string;
 	count: number;
 }
 
@@ -23,22 +31,8 @@ export class StarboardStore {
 
 	private temp: Record<string, StarboardData> = {};
 	private adding: Record<string, Promise<void>> = {};
-	private update$ = new Subject<void>();
 
-	private constructor(private guild: Discord.Guild) {
-		this.update$.pipe(
-			auditTime(60 * 1000)
-		).subscribe(() => {
-			this.save();
-		});
-	}
-
-	public async save() {
-		const db = admin.firestore();
-		const starboardRef = db.collection("starboard").doc(this.guild.id);
-		await starboardRef.set(this.temp, { merge: true });
-		await this.load();
-	}
+	private constructor(private guild: Discord.Guild) {	}
 
 	public async load() {
 		const db = admin.firestore();
@@ -46,6 +40,38 @@ export class StarboardStore {
 		const starboardDoc = await starboardRef.get();
 		const temp = starboardDoc.data() as Record<string, string> || {};
 		Object.assign(this.temp, temp);
+	}
+
+	public async saveItem(item: StarboardDataNew) {
+		const db = admin.firestore();
+		const starboardRef = db
+			.collection("starboard")
+			.doc(this.guild.id)
+			.collection("messages")
+			.doc(item.messageId);
+		await starboardRef.set(item, { merge: true });
+	}
+
+	public async getItem(message: Discord.Message) {
+		const db = admin.firestore();
+		const starboardRef = db
+			.collection("starboard")
+			.doc(this.guild.id)
+			.collection("messages")
+			.doc(message.id);
+		const starboardDoc = await starboardRef.get();
+		let result = starboardDoc.data() as StarboardDataNew | undefined;
+		if (!result && this.temp[message.id]) {
+			result = {
+				...this.temp[message.id],
+				messageId: message.id,
+				channelId: message.channel.id,
+				senderId: message.author.id,
+				senderName: message.author.tag,
+				message: message.content,
+			};
+		}
+		return result;
 	}
 
 	public getTemporarilyTimer(message: Discord.Message) {
@@ -59,26 +85,18 @@ export class StarboardStore {
 		}, 10000);
 	}
 
-	public getStarboardMessage(message: Discord.Message) {
-		return this.temp[message.id];
-	}
-
-	public addStarboardMessage(message: Discord.Message, count: number, starboardMessage: Discord.Message) {
-		this.temp[message.id] = {
+	public async addStarboardMessage(message: Discord.Message, count: number, starboardMessage: Discord.Message) {
+		const newdata: StarboardDataNew = {
+			messageId: message.id,
+			channelId: message.channel.id,
 			starboardMessageId: starboardMessage.id,
 			senderId: message.author.id,
 			senderName: message.author.tag,
+			message: message.content,
 			count,
 		};
 		delete this.adding[message.id];
-		this.update$.next();
+		await this.saveItem(newdata);
 	}
 
-	public updateCount(message: Discord.Message, count: number) {
-		if (this.temp[message.id]) {
-			this.temp[message.id].count = count;
-			delete this.adding[message.id];
-			this.update$.next();
-		}
-	}
 }

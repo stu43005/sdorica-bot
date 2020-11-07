@@ -125,7 +125,6 @@ export class StatCollection {
 			channel: message.channel.id,
 			channelName: (message.channel as Discord.TextChannel).name,
 			guild: message.guild?.id,
-			emojis: emojis.map(emoji => emoji.id),
 		}).send();
 	}
 

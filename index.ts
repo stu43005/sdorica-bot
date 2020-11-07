@@ -8,6 +8,7 @@ import requireAll from "require-all";
 import { FirestoreProvider } from "./firestore-provider";
 import { initHttp } from "./http";
 import { Logger } from "./logger";
+import { getVisitor } from './ua';
 import { isDevMode } from "./utils";
 
 // init moment locale
@@ -60,9 +61,17 @@ client
 	})
 	.on('disconnect', () => { Logger.warn('Disconnected!'); })
 	.on('reconnecting', () => { Logger.warn('Reconnecting...'); })
-	.on('commandError', (cmd, err) => {
-		if (err instanceof FriendlyError) return;
+	.on('commandError', (cmd, err, message, args, fromPattern) => {
+		const fatal = !(err instanceof FriendlyError);
+		getVisitor(message.author).exception(`CommandError: ${err}`, fatal).send();
+		if (!fatal) return;
 		Logger.error(`Error in command ${cmd.groupID}:${cmd.memberName}`, err);
+	})
+	.on('commandRun', (command, promise, message, args, fromPattern) => {
+		getVisitor(message.author).event("command_run", {
+			name: command.name,
+			args,
+		}).send();
 	});
 
 // init provider

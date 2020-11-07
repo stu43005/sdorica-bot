@@ -12,5 +12,9 @@
 			"__format": "json"
 		},
 		"databaseURL": "FIREBASE_ADMIN_DATABASE"
+	},
+	"measurementProtocol": {
+		"measurementId": "MP_MEASUREMENT_ID",
+		"apiSecret": "MP_API_SECRET"
 	}
 }

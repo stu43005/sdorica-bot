@@ -5,5 +5,9 @@
 	"cacheTTL": 43200,
 	"botOwners": [
 		"198437688255184897"
-	]
+	],
+	"measurementProtocol": {
+		"measurementId": "",
+		"apiSecret": ""
+	}
 }

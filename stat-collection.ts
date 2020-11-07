@@ -4,6 +4,7 @@ import moment from 'moment';
 import { Subject } from "rxjs";
 import { auditTime } from "rxjs/operators";
 import { Logger } from "./logger";
+import { getVisitor } from "./ua";
 import { getCustomEmojis } from "./utils";
 
 export class StatCollection {
@@ -117,6 +118,15 @@ export class StatCollection {
 		this.meta.channelNames[message.channel.id] = (message.channel as Discord.TextChannel).name;
 
 		this.update$.next();
+
+		getVisitor(message.author).event('message', {
+			user: message.author.id,
+			tag: message.author.tag,
+			channel: message.channel.id,
+			channelName: (message.channel as Discord.TextChannel).name,
+			guild: message.guild?.id,
+			emojis: emojis.map(emoji => emoji.id),
+		}).send();
 	}
 
 	addReaction(messageReaction: Discord.MessageReaction, user: Discord.User) {
@@ -127,6 +137,14 @@ export class StatCollection {
 
 			add(this.temp.reactions, messageReaction.emoji.id);
 			add(this.temp.reactionsByMember[user.id], messageReaction.emoji.id);
+
+			this.update$.next();
+
+			getVisitor(user).event('reaction', {
+				user: user.id,
+				tag: user.tag,
+				emoji: messageReaction.emoji.id,
+			}).send();
 		}
 	}
 
@@ -135,6 +153,15 @@ export class StatCollection {
 		add(this.temp.memes, meme);
 
 		this.update$.next();
+
+		getVisitor(message.author).event('meme', {
+			user: message.author.id,
+			tag: message.author.tag,
+			channel: message.channel.id,
+			channelName: (message.channel as Discord.TextChannel).name,
+			guild: message.guild?.id,
+			meme,
+		}).send();
 	}
 
 }

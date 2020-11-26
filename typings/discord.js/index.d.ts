@@ -9,8 +9,6 @@ declare module 'discord.js' {
 	 * @see discord.js-commando: {@link https://discord.js.org/#/docs/commando/master/class/CommandoMessage|CommandoMessage}
 	 */
 	interface Message {
-		readonly crosspostable: boolean;
-
 		/**
 		 * Whether the message contains a command (even an unknown one)
 		 * @type {boolean}

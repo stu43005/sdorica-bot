@@ -28,7 +28,7 @@ export default class AutoCrosspostingCommand extends Command2 {
 			const guild = message.guild;
 			if (!guild || !this.isEnabledIn(guild)) return;
 
-			if (message.crosspostable) return;
+			if (message.channel.type !== 'news') return;
 
 			const channelId = message.channel.id;
 			const list: string[] = guild.settings.get(key, []);

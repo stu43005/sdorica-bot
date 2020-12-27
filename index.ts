@@ -3,6 +3,7 @@ import { CronJob } from 'cron';
 import { Client, FriendlyError } from "discord.js-commando";
 import admin from "firebase-admin";
 import moment from 'moment';
+import 'moment/locale/zh-tw';
 import path from "path";
 import requireAll from "require-all";
 import { FirestoreProvider } from "./firestore-provider";

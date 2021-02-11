@@ -123,7 +123,7 @@ export default class QuoteCommand extends Command2 {
 
 }
 
-export async function quoteEmbed(contextChannel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, message: Discord.Message, user: Discord.User, footer = "Quoted") {
+export async function quoteEmbed(contextChannel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, message: Discord.Message, user: Discord.User | Discord.PartialUser, footer = "Quoted") {
 	const sendedMessages: Discord.Message[] = [];
 	if (message.content || !message.author.bot) {
 		sendedMessages.push(await contextChannel.send(buildQuoteEmbed(contextChannel, message, user, footer)));
@@ -137,7 +137,7 @@ export async function quoteEmbed(contextChannel: Discord.TextChannel | Discord.D
 	return sendedMessages;
 }
 
-export function buildQuoteEmbed(contextChannel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, message: Discord.Message, user: Discord.User, footer: string): Discord.MessageEmbed {
+export function buildQuoteEmbed(contextChannel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, message: Discord.Message, user: Discord.User | Discord.PartialUser, footer: string): Discord.MessageEmbed {
 	const embed = new Discord.MessageEmbed({
 		description: message.content,
 		timestamp: message.createdAt,

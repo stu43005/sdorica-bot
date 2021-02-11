@@ -3,7 +3,7 @@ import { Command, CommandoMessage, ArgumentCollectorResult } from "discord.js-co
 
 export class Command2 extends Command {
 	run(message: CommandoMessage, args: object | string | string[], fromPattern: boolean, result?: ArgumentCollectorResult) {
-		const message2 = message as unknown as Discord.Message;
+		const message2 = message as Discord.Message;
 		return this.run2(message2, args, fromPattern, result);
 	}
 

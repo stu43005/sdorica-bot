@@ -61,7 +61,6 @@ client
 		}
 	})
 	.on('disconnect', () => { Logger.warn('Disconnected!'); })
-	.on('reconnecting', () => { Logger.warn('Reconnecting...'); })
 	.on('commandError', (cmd, err, message, args, fromPattern) => {
 		const fatal = !(err instanceof FriendlyError);
 		getVisitor(message.author).exception(`CommandError: ${err}`, fatal).send();

@@ -111,7 +111,7 @@ export default class StarboardCommand extends SubCommand {
 	}
 
 	initHooks(client: CommandoClient) {
-		client.on('messageReactionAdd', async (messageReaction: Discord.MessageReaction, user: Discord.User) => {
+		client.on('messageReactionAdd', async (messageReaction: Discord.MessageReaction, user: Discord.User | Discord.PartialUser) => {
 			if (user.bot) return;
 			const message = messageReaction.message;
 			const guild = message.guild;
@@ -134,7 +134,6 @@ export default class StarboardCommand extends SubCommand {
 				}
 			}
 		});
-
 	}
 
 }

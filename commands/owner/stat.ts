@@ -27,7 +27,7 @@ export default class StatCommand extends Command2 {
 			StatCollection.fromGuild(message.guild).addMessage(message);
 		});
 
-		client.on('messageReactionAdd', (messageReaction: Discord.MessageReaction, user: Discord.User) => {
+		client.on('messageReactionAdd', (messageReaction: Discord.MessageReaction, user: Discord.User | Discord.PartialUser) => {
 			if (user.bot) return;
 			const guild = messageReaction.message.guild;
 			if (!guild) return;
@@ -38,7 +38,7 @@ export default class StatCommand extends Command2 {
 			StatCollection.fromGuild(member.guild).memberChange();
 		});
 
-		client.on("guildMemberRemove", (member: Discord.GuildMember) => {
+		client.on("guildMemberRemove", (member: Discord.GuildMember | Discord.PartialGuildMember) => {
 			StatCollection.fromGuild(member.guild).memberChange();
 		});
 	}

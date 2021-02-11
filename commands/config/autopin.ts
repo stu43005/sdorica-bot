@@ -24,7 +24,7 @@ export default class AutoPinCommand extends Command2 {
 			],
 		});
 
-		client.on('messageReactionAdd', (messageReaction: Discord.MessageReaction, user: Discord.User) => {
+		client.on('messageReactionAdd', (messageReaction: Discord.MessageReaction, user: Discord.User | Discord.PartialUser) => {
 			if (user.bot) return;
 			const guild = messageReaction.message.guild;
 			if (!guild) return;
@@ -49,7 +49,7 @@ export default class AutoPinCommand extends Command2 {
 
 }
 
-async function autopin(needPushPinCount: number, messageReaction: Discord.MessageReaction, user: Discord.User) {
+async function autopin(needPushPinCount: number, messageReaction: Discord.MessageReaction, user: Discord.User | Discord.PartialUser) {
 	if (messageReaction.partial) await messageReaction.fetch();
 	if (messageReaction.message.partial) await messageReaction.message.fetch();
 

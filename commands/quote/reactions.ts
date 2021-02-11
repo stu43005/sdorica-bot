@@ -18,7 +18,7 @@ export default class QuoteReactionsCommand extends Command2 {
 			userPermissions: ['MANAGE_GUILD'],
 		});
 
-		client.on('messageReactionAdd', async (messageReaction: Discord.MessageReaction, user: Discord.User) => {
+		client.on('messageReactionAdd', async (messageReaction: Discord.MessageReaction, user: Discord.User | Discord.PartialUser) => {
 			if (user.bot) { return; }
 			const message = messageReaction.message;
 			const guild = message.guild;
@@ -26,7 +26,7 @@ export default class QuoteReactionsCommand extends Command2 {
 			if (!this.isEnabledIn(guild)) return;
 
 			if (messageReaction.emoji.name == REACTION_QUOTE_EMOJI && guild.settings.get(key)) {
-				const member = guild.members.resolve(user);
+				const member = guild.members.resolve(user.id);
 				if (!member) { return; }
 				const channel = message.channel;
 				if (!channel) { return; }

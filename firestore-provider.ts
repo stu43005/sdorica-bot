@@ -1,4 +1,4 @@
-import { Guild } from 'discord.js';
+import { ClientEvents, Guild } from 'discord.js';
 import { Command, CommandGroup, CommandoClient, SettingProvider } from 'discord.js-commando';
 import admin from "firebase-admin";
 
@@ -44,7 +44,7 @@ export class FirestoreProvider extends SettingProvider {
 	/**
 	 * Listeners on the Client, mapped by the event name
 	 */
-	private listeners: Map<string, (...args: any[]) => void>;
+	private listeners: Map<keyof ClientEvents, (...args: any[]) => void>;
 
 	/**
 	 * @param {admin.app.App} app - Application from Firebase Admin

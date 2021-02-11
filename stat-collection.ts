@@ -128,7 +128,7 @@ export class StatCollection {
 		}).send();
 	}
 
-	addReaction(messageReaction: Discord.MessageReaction, user: Discord.User) {
+	addReaction(messageReaction: Discord.MessageReaction, user: Discord.User | Discord.PartialUser) {
 		if (messageReaction.emoji.id) {
 			if (!this.temp.reactions) this.temp.reactions = {};
 			if (!this.temp.reactionsByMember) this.temp.reactionsByMember = {};

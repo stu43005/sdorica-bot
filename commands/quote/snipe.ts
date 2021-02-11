@@ -29,14 +29,16 @@ export default class SnipeCommand extends Command2 {
 			}
 		});
 
-		client.on("messageDelete", (message: Discord.Message) => {
+		client.on("messageDelete", async (message: Discord.Message | Discord.PartialMessage) => {
 			if (message.guild && !(message.author && message.author.bot)) {
 				let guildSnipes = snipes.get(message.guild.id);
 				if (!guildSnipes) {
 					guildSnipes = new Discord.Collection<Discord.Snowflake, Discord.Message>();
 					snipes.set(message.guild.id, guildSnipes);
 				}
-				guildSnipes.set(message.channel.id, message);
+				if (!message.partial) {
+					guildSnipes.set(message.channel.id, message);
+				}
 			}
 		});
 	}

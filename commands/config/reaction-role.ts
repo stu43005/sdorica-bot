@@ -177,14 +177,14 @@ export default class ReactionRoleCommand extends SubCommand {
 	}
 
 	initHooks(client: CommandoClient) {
-		client.on("messageReactionAdd", async (messageReaction: Discord.MessageReaction, user: Discord.User) => {
+		client.on("messageReactionAdd", async (messageReaction: Discord.MessageReaction, user: Discord.User | Discord.PartialUser) => {
 			if (user.bot) return;
 			const message = messageReaction.message;
 			const guild = message.guild;
 			if (!guild) return;
 			if (!this.isEnabledIn(guild)) return;
 
-			const member = guild.members.resolve(user);
+			const member = guild.members.resolve(user.id);
 			if (!member) return;
 
 			const reactionRoles: ReactionRole[] = guild.settings.get("reactionRoles", []);
@@ -240,6 +240,7 @@ export default class ReactionRoleCommand extends SubCommand {
 					break;
 			}
 
+			const user2 = await user.fetch();
 			try {
 				if (adds.length) {
 					adds.forEach(emo => {
@@ -259,17 +260,17 @@ export default class ReactionRoleCommand extends SubCommand {
 							return;
 						}
 						member.roles.remove(role.id);
-						unreact(messageReaction.message, emo.emoji, user);
+						unreact(messageReaction.message, emo.emoji, user2);
 					});
 				}
 				if (rollback) {
-					unreact(messageReaction.message, emoji, user);
+					unreact(messageReaction.message, emoji, user2);
 				}
 			} catch (error) {
 			}
 		});
 
-		client.on("messageReactionRemove", async (messageReaction: Discord.MessageReaction, user: Discord.User) => {
+		client.on("messageReactionRemove", async (messageReaction: Discord.MessageReaction, user: Discord.User | Discord.PartialUser) => {
 			if (user.bot) return;
 
 			const message = messageReaction.message;
@@ -277,7 +278,7 @@ export default class ReactionRoleCommand extends SubCommand {
 			if (!guild) return;
 			if (!this.isEnabledIn(guild)) return;
 
-			const member = guild.members.resolve(user);
+			const member = guild.members.resolve(user.id);
 			if (!member) return;
 
 			const reactionRoles: ReactionRole[] = guild.settings.get("reactionRoles", []);

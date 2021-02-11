@@ -33,7 +33,7 @@ export default class CheckMemberCommand extends Command2 {
 			ownerOnly: true,
 		});
 
-		client.on('guildMemberUpdate', (oldMember: Discord.GuildMember, newMember: Discord.GuildMember) => {
+		client.on('guildMemberUpdate', (oldMember: Discord.GuildMember | Discord.PartialGuildMember, newMember: Discord.GuildMember) => {
 			if (newMember.guild.id === '437330083976445953') {
 				checkMember(newMember);
 			}

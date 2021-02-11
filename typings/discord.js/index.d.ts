@@ -19,19 +19,19 @@ declare module 'discord.js' {
 		 * Command that the message triggers, if any
 		 * @type {?Command}
 		 */
-		command: Command;
+		command: Command | null;
 
 		/**
 		 * Argument string for the command
 		 * @type {?string}
 		 */
-		argString: string;
+		argString: string | null;
 
 		/**
 		 * Pattern matches (if from a pattern trigger)
 		 * @type {?string[]}
 		 */
-		patternMatches: string[];
+		patternMatches: string[] | null;
 
 		/**
 		 * Creates a usage string for the message's command
@@ -49,7 +49,7 @@ declare module 'discord.js' {
 		 * @param {User} [user=this.client.user] - User to use for the mention command format
 		 * @return {string}
 		 */
-		anyUsage(command?: string, prefix?: string, user?: User): string;
+		anyUsage(argString?: string, prefix?: string, user?: User): string;
 
 		/**
 		 * Parses the argString into usable arguments, based on the argsType and argsCount of the command
@@ -62,7 +62,7 @@ declare module 'discord.js' {
 		 * Runs the command
 		 * @return {Promise<?Message|?Array<Message>>}
 		 */
-		run(): Promise<Message | Message[]>;
+		run(): Promise<null | Message | Message[]>;
 
 		/**
 		 * Responds with a plain message
@@ -70,15 +70,14 @@ declare module 'discord.js' {
 		 * @param {MessageOptions} [options] - Options for the message
 		 * @return {Promise<Message|Message[]>}
 		 */
-		say(content: StringResolvable, options?: MessageOptions | MessageAdditions): Promise<Message | Message[]>;
-
-		/**
-		 * Responds with a reply message
-		 * @param {StringResolvable} content - Content for the message
-		 * @param {MessageOptions} [options] - Options for the message
-		 * @return {Promise<Message|Message[]>}
-		 */
-		reply(content: StringResolvable, options?: MessageOptions | MessageAdditions): Promise<Message | Message[]>;
+		say(
+			content: StringResolvable | (MessageOptions & { split?: false }) | MessageAdditions,
+			options?: (MessageOptions & { split?: false }) | MessageAdditions
+		): Promise<Message>;
+		say(
+			content: StringResolvable | (MessageOptions & { split: true | Exclude<MessageOptions['split'], boolean> }) | MessageAdditions,
+			options?: (MessageOptions & { split: true | Exclude<MessageOptions['split'], boolean> }) | MessageAdditions
+		): Promise<Message[]>;
 
 		/**
 		 * Responds with a direct message
@@ -86,7 +85,7 @@ declare module 'discord.js' {
 		 * @param {MessageOptions} [options] - Options for the message
 		 * @return {Promise<Message|Message[]>}
 		 */
-		direct(content: StringResolvable, options?: MessageOptions | MessageAdditions): Promise<Message | Message[]>;
+		direct: Message['say'];
 
 		/**
 		 * Responds with a code message
@@ -95,7 +94,7 @@ declare module 'discord.js' {
 		 * @param {MessageOptions} [options] - Options for the message
 		 * @return {Promise<Message|Message[]>}
 		 */
-		code(lang: string, content: StringResolvable, options?: MessageOptions | MessageAdditions): Promise<Message | Message[]>;
+		code: Message['say'];
 
 		/**
 		 * Responds with an embed
@@ -104,7 +103,8 @@ declare module 'discord.js' {
 		 * @param {MessageOptions} [options] - Options for the message
 		 * @return {Promise<Message|Message[]>}
 		 */
-		embed(embed: MessageEmbed | {}, content?: StringResolvable, options?: MessageOptions | MessageAdditions): Promise<Message | Message[]>;
+		embed(embed: MessageEmbed, content?: StringResolvable, options?: (MessageOptions & { split?: false }) | MessageAdditions): Promise<Message>;
+		embed(embed: MessageEmbed, content?: StringResolvable, options?: (MessageOptions & { split: true | Exclude<MessageOptions['split'], boolean> }) | MessageAdditions): Promise<Message[]>;
 
 		/**
 		 * Responds with a mention + embed
@@ -113,20 +113,7 @@ declare module 'discord.js' {
 		 * @param {MessageOptions} [options] - Options for the message
 		 * @return {Promise<Message|Message[]>}
 		 */
-		replyEmbed(embed: MessageEmbed | {}, content?: StringResolvable, options?: MessageOptions | MessageAdditions): Promise<Message | Message[]>;
-	}
-
-	// static
-	namespace Message {
-		/**
-		 * Parses an argument string into an array of arguments
-		 * @param {string} argString - The argument string to parse
-		 * @param {number} [argCount] - The number of arguments to extract from the string
-		 * @param {boolean} [allowSingleQuote=true] - Whether or not single quotes should be allowed to wrap arguments,
-		 * in addition to double quotes
-		 * @return {string[]} The array of arguments
-		 */
-		function parseArgs(argString: string, argCount?: number, allowSingleQuote?: boolean): string[];
+		replyEmbed: Message['embed'];
 	}
 
 	interface Guild {
@@ -134,7 +121,7 @@ declare module 'discord.js' {
 		 * Shortcut to use setting provider methods for this guild
 		 * @type {GuildSettingsHelper}
 		 */
-		settings: GuildSettingsHelper;
+		readonly settings: GuildSettingsHelper;
 
 		/**
 		 * Command prefix in the guild. An empty string indicates that there is no prefix, and only mentions will be used.
@@ -156,7 +143,7 @@ declare module 'discord.js' {
 		 * @param {CommandResolvable} command - Command to check status of
 		 * @return {boolean}
 		 */
-		isCommandEndabled(command: CommandResolvable): boolean;
+		isCommandEnabled(command: CommandResolvable): boolean;
 
 		/**
 		 * Sets whether a command group is enabled in the guild
@@ -182,9 +169,16 @@ declare module 'discord.js' {
 	}
 
 	interface ClientEvents {
-		commandBlock: [Message, string, Object | undefined];
+		commandBlock:
+		| [Message, string, object?]
+		| [Message, 'guildOnly' | 'nsfw']
+		| [Message, 'permission', { response?: string }]
+		| [Message, 'throttling', { throttle: object, remaining: number }]
+		| [Message, 'clientPermissions', { missing: string }];
 		commandCancel: [Command, string, Message];
-		commandError: [Command, Error, Message, object | string | string[], boolean];
+		commandError:
+		| [Command, Error, Message, object | string | string[], false]
+		| [Command, Error, Message, string[], true];
 		commandPrefixChange: [Guild, string];
 		commandRegister: [Command, CommandoRegistry];
 		commandReregister: [Command, Command];
@@ -193,8 +187,8 @@ declare module 'discord.js' {
 		commandUnregister: [Command];
 		groupRegister: [CommandGroup, CommandoRegistry];
 		groupStatusChange: [Guild, CommandGroup, boolean];
-		providerReady: [SettingProvider];
 		typeRegister: [ArgumentType, CommandoRegistry];
 		unknownCommand: [Message];
+		providerReady: [SettingProvider];
 	}
 }

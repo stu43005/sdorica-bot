@@ -1,5 +1,5 @@
 import config from 'config';
-import { User } from 'discord.js';
+import { PartialUser, User } from 'discord.js';
 import fetch from 'node-fetch';
 import { v4 as uuid } from 'uuid';
 import { Logger } from './logger';
@@ -7,7 +7,7 @@ import { isDevMode } from './utils';
 
 const clientId = uuid();
 
-export function getVisitor(user: User): Visitor {
+export function getVisitor(user: User | PartialUser): Visitor {
 	return new Visitor(config.get('measurementProtocol.measurementId'), config.get('measurementProtocol.apiSecret'), user.id);
 }
 

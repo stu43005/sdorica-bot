@@ -23,12 +23,12 @@ export default class NewsChannelArgumentType extends ArgumentType {
 		let channels = msg.guild.channels.cache.filter(channelFilterInexact(search));
 		if (channels.size === 0) return false;
 		if (channels.size === 1) {
-			if (arg.oneOf && !arg.oneOf.includes(channels.first()?.id)) return false;
+			if (arg.oneOf && !arg.oneOf.includes(channels.first()?.id!)) return false;
 			return true;
 		}
 		const exactChannels = channels.filter(channelFilterExact(search));
 		if (exactChannels.size === 1) {
-			if (arg.oneOf && !arg.oneOf.includes(exactChannels.first()?.id)) return false;
+			if (arg.oneOf && !arg.oneOf.includes(exactChannels.first()?.id!)) return false;
 			return true;
 		}
 		if (exactChannels.size > 0) channels = exactChannels;

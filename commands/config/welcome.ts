@@ -180,7 +180,7 @@ ${welcome.dmjoinTemplate ? "☑️" : "❎"} DM message`);
 			}
 		});
 
-		client.on("guildMemberRemove", async (member: Discord.GuildMember) => {
+		client.on("guildMemberRemove", async (member: Discord.GuildMember | Discord.PartialGuildMember) => {
 			const welcome = await getWelcomeConfig(member.guild);
 
 			const banned = await member.guild.fetchBans();
@@ -234,7 +234,7 @@ async function getWelcomeConfig(guild: Discord.Guild) {
 	return welcome;
 }
 
-function formatTemplate(guild: Discord.Guild, userMember: Discord.GuildMember | Discord.User, template: string) {
+function formatTemplate(guild: Discord.Guild, userMember: Discord.GuildMember | Discord.PartialGuildMember | Discord.User, template: string) {
 	if (!template) return "";
 	return template.replace(/\{([^\}]*)\}/g, (substring, p1, ...args) => {
 		const member = userMember as Discord.GuildMember;

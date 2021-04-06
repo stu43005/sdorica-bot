@@ -94,6 +94,7 @@ client.registry
 		['quote', 'Quote bot commands'],
 		['config', 'Config commands'],
 		['owner', 'Owner commands'],
+		['moderator', 'Moderator commands'],
 	])
 	.registerTypesIn({
 		dirname: path.join(__dirname, 'types'),

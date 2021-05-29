@@ -7,7 +7,7 @@ import { Logger } from "../../logger";
 import { Command2 } from "../../typings/discord.js-commando/command";
 
 const defaultUrl = 'https://www.youtube.com/channel/UCJFZiqLMntJufDCHc6bQixg';
-const calendarList: Record<string, {
+const holoen: Record<string, {
 	email: string;
 	emoji: string;
 	url: string;
@@ -47,27 +47,54 @@ const calendarList: Record<string, {
 		emoji: '🐙',
 		url: 'https://www.youtube.com/channel/UCMwGHR0BTZuLsmjY_NT5Pwg',
 	},
-	// 'Ollie': {
-	// 	email: 't10hn2eqnoehcq8r82lot4ij1g@group.calendar.google.com',
-	// 	emoji: '🧟‍♀️',
-	// 	url: 'https://www.youtube.com/channel/UCYz_5n-uDuChHtLo7My1HnQ',
-	// },
-	// 'Melfissa': {
-	// 	email: 'c10lptp72vs5rdfmf36f67u1j4@group.calendar.google.com',
-	// 	emoji: '🍂',
-	// 	url: 'https://www.youtube.com/channel/UChgTyjG-pdNvxxhdsXfHQ5Q',
-	// },
-	// 'Reine': {
-	// 	email: '01scep9nhn0i2amh4e8o1n4imk@group.calendar.google.com',
-	// 	emoji: '🦚',
-	// 	url: 'https://www.youtube.com/channel/UC727SQYUvx5pDDGQpTICNWg',
-	// },
+	'Gen 0': {
+		email: 'b31bqpsio3di6abnf0s50jcrbo@group.calendar.google.com',
+		emoji: '🗾',
+		url: 'https://www.youtube.com/channel/UC1CfXB_kRs3C-zaeTG3oGyg',
+	},
+};
+const holoid: Record<string, {
+	email: string;
+	emoji: string;
+	url: string;
+}> = {
+	'Ollie': {
+		email: 't10hn2eqnoehcq8r82lot4ij1g@group.calendar.google.com',
+		emoji: '🧟‍♀️',
+		url: 'https://www.youtube.com/channel/UCYz_5n-uDuChHtLo7My1HnQ',
+	},
+	'Melfissa': {
+		email: 'c10lptp72vs5rdfmf36f67u1j4@group.calendar.google.com',
+		emoji: '🍂',
+		url: 'https://www.youtube.com/channel/UChgTyjG-pdNvxxhdsXfHQ5Q',
+	},
+	'Reine': {
+		email: '01scep9nhn0i2amh4e8o1n4imk@group.calendar.google.com',
+		emoji: '🦚',
+		url: 'https://www.youtube.com/channel/UC727SQYUvx5pDDGQpTICNWg',
+	},
+	'Risu': {
+		email: 'mdj5d3qe7bi82a47c6dl2bedb4@group.calendar.google.com',
+		emoji: '🐿',
+		url: 'https://www.youtube.com/channel/UCOyYb1c43VlX9rc_lT6NKQw',
+	},
+	'Iofi': {
+		email: 'b3q7c9f1gupe09h3om6sns32mg@group.calendar.google.com',
+		emoji: '🎨',
+		url: 'https://www.youtube.com/channel/UCAoy6rzhSf4ydcYjJw3WoVg',
+	},
+	'Moona': {
+		email: '87jujgdf4sgm0s6h120r6rg7mo@group.calendar.google.com',
+		emoji: '🔮',
+		url: 'https://www.youtube.com/channel/UCP0BspO_AMEe3aQqqpo89Dg',
+	},
 };
 
 export default class HololiveCommand extends Command2 {
 	constructor(client: CommandoClient) {
 		super(client, {
 			name: 'hololive',
+			aliases: ["holoen", "holoid"],
 			group: 'fun',
 			memberName: 'hololive',
 			description: 'Hololive upcoming stream schedule',
@@ -88,7 +115,10 @@ export default class HololiveCommand extends Command2 {
 			const timeMin = moment().toISOString();
 			const timeMax = moment().add(1.5, 'day').toISOString();
 
-			const urls = Object.values(calendarList).map(calendar => `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendar.email)}/events?key=${encodeURIComponent(key)}&timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&maxResults=9999`);
+			const isHoloID = /holoid/i.test(message.content);
+			const calendars = isHoloID ? Object.values(holoid) : Object.values(holoen);
+
+			const urls = calendars.map(calendar => `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendar.email)}/events?key=${encodeURIComponent(key)}&timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&maxResults=9999`);
 			const jsons = await Promise.all<Calendar>(urls.map(url => fetch(url).then(res => res.json()).catch(error => {
 				Logger.error('[hololive]', error);
 				return null;
@@ -102,7 +132,7 @@ export default class HololiveCommand extends Command2 {
 			});
 
 			const desc = events.map(event => {
-				const calendar = Object.values(calendarList).find(cal => cal.email === event.organizer.email);
+				const calendar = calendars.find(cal => cal.email === event.organizer.email);
 				const emoji = calendar?.emoji ?? '▶️';
 				const url = event.location ? `[stream link](${event.location})` : `[channel link](${calendar?.url ?? defaultUrl})`;
 				const startTime = moment(event.start.dateTime).tz('Asia/Taipei').calendar();

@@ -1,6 +1,7 @@
+import { codeBlock, inlineCode } from '@discordjs/builders';
 import config from "config";
 import { ColorResolvable, DiscordAPIError, MessageEmbed, WebhookClient } from "discord.js";
-import { jsonBlock, isDevMode } from "./utils";
+import { isDevMode, jsonBlock } from "./utils";
 
 let webhookClient: WebhookClient | null = null;
 if (config.has('logWebhook.id') && config.has('logWebhook.token')) {
@@ -49,17 +50,17 @@ function buildEmbed(color: ColorResolvable, emoji: string, msgs: any[]) {
 function buildMessage(msgs: any[]) {
 	return msgs.map(msg => {
 		if (msg === null) {
-			return '`null`';
+			return inlineCode(`null`);
 		}
 		if (typeof msg === 'undefined') {
-			return '`undefined`';
+			return inlineCode(`undefined`);
 		}
 		if (typeof msg === 'symbol') {
-			return '`Symbol()`';
+			return inlineCode(`Symbol()`);
 		}
 		if (typeof msg === 'object') {
 			if (msg instanceof Error) {
-				return "```\n" + (msg.stack ?? msg.toString()) + "\n```";
+				return codeBlock(msg.stack ?? msg.toString());
 			}
 			return jsonBlock(msg);
 		}

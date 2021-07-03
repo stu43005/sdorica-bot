@@ -1,3 +1,4 @@
+import { codeBlock } from "@discordjs/builders";
 import config from "config";
 import * as Discord from "discord.js";
 
@@ -71,7 +72,7 @@ export function isBotOwner(user: Discord.User) {
 }
 
 export function jsonBlock(obj: any) {
-	return "```json\n" + JSON.stringify(obj, null, '  ') + "\n```";
+	return codeBlock('json', JSON.stringify(obj, null, '  '));
 }
 
 export function numMultiply(arg1: number, arg2: number): number {

@@ -1,3 +1,4 @@
+import { inlineCode } from '@discordjs/builders';
 import * as Discord from "discord.js";
 import { CommandoClient } from "discord.js-commando";
 import { Command2 } from "../../typings/discord.js-commando/command";
@@ -14,7 +15,7 @@ export default class CodeCommand extends Command2 {
 	}
 
 	async run2(message: Discord.Message, arg: string) {
-		return message.say(`\`${arg}\``);
+		return message.say(inlineCode(arg));
 	}
 
 }

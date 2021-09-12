@@ -44,7 +44,7 @@ function buildEmbed(color: ColorResolvable, emoji: string, msgs: any[]) {
 	const embed = new MessageEmbed();
 	embed.setColor(color);
 	embed.setDescription(emoji + '：' + buildMessage(msgs));
-	return embed;
+	return { embeds: [embed] };
 }
 
 function buildMessage(msgs: any[]) {

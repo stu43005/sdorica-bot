@@ -32,7 +32,7 @@ export default class MemeImportCommand extends Command2 {
 				json = JSON.parse(arg);
 			}
 
-			if (isArray(json)) {
+			if (Array.isArray(json)) {
 				const memes: MemeItem[] = message.guild.settings.get('memes', []);
 				const errors: string[] = [];
 				let addCount = 0;
@@ -63,7 +63,7 @@ export default class MemeImportCommand extends Command2 {
 			} else {
 				throw "json is not a array.";
 			}
-		} catch (error) {
+		} catch (error: any) {
 			return await message.reply(error.toString());
 		}
 	}

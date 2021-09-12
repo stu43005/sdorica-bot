@@ -43,7 +43,7 @@ export function initHttp(client: Discord.Client) {
 						message = await textChannel.messages.fetch(req.params.messageId);
 					}
 					if (message) {
-						const json = message.toJSON();
+						const json: any = message.toJSON();
 						json['author'] = message.author.toJSON();
 						res.json(json);
 						return;
@@ -51,7 +51,7 @@ export function initHttp(client: Discord.Client) {
 				}
 			}
 			res.status(404).json({ error: 'Not Found' });
-		} catch (err) {
+		} catch (err: any) {
 			res.status(500).json({ error: err.toString() });
 		}
 	});

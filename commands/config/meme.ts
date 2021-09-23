@@ -8,7 +8,7 @@ import { arrayConcat, embedOriginUserData } from "../../utils";
 import { StatCollection } from "../../stat-collection";
 
 const random = new Random();
-const buckets = CooldownMapping.fromCooldown(2, 5, BucketType.channel);
+const buckets = CooldownMapping.fromCooldown(1, 60, BucketType.channel);
 
 export default class MemeCommand extends Command2 {
 	constructor(client: CommandoClient) {
@@ -45,9 +45,6 @@ export default class MemeCommand extends Command2 {
 			if (!message.guild) return;
 			if (!this.isEnabledIn(message.guild)) return;
 
-			// cooldown
-			if (buckets.getBucket(message).updateRateLimit()) return;
-
 			const memes: MemeItem[] = message.guild.settings.get('memes', []);
 			const matches: MemeItem[] = [];
 			for (let i = 0; i < memes.length; i++) {
@@ -59,6 +56,9 @@ export default class MemeCommand extends Command2 {
 			}
 
 			if (matches.length) {
+				// cooldown
+				if (buckets.getBucket(message).updateRateLimit()) return;
+
 				const index = random.integer(0, matches.length - 1);
 				sendMeme(message, matches[index]);
 				StatCollection.fromGuild(message.guild).addMeme(message, matches[index].keyword);

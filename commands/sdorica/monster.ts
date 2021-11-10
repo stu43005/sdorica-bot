@@ -1,12 +1,10 @@
 import * as Discord from "discord.js";
 import { CommandoClient } from "discord.js-commando";
+import fetch from "node-fetch";
 import rwc from "random-weighted-choice";
 import { cache } from "../../cache";
 import { Command2 } from "../../typings/discord.js-commando/command";
 import { embedOriginUserData, getOnce, showCooldown } from "../../utils";
-import { readTextWithCache } from "../../wiki";
-
-const onlyChannel = "643335140902436905";
 
 type MonsterTrap = {
 	items: Record<string, {
@@ -46,7 +44,8 @@ export default class MonsterCommand extends Command2 {
 		}
 
 		const monsterTrap = await cache.getOrFetch<MonsterTrap>('MonsterTrap', async () => {
-			return JSON.parse(await readTextWithCache('使用者:小飄飄/bot/MonsterTrap.json')) as MonsterTrap;
+			const resp = await fetch('https://raw.githubusercontent.com/stu43005/sdorica-wiki-bot/data/wiki/MonsterTrap.json');
+			return await resp.json() as MonsterTrap;
 		});
 
 		if (itemName == "help" || itemName == "list") {

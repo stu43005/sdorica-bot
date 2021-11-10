@@ -1,12 +1,12 @@
 import * as Discord from "discord.js";
 import { CommandoClient } from "discord.js-commando";
 import admin from "firebase-admin";
+import fetch from 'node-fetch';
 import rwc from "random-weighted-choice";
 import { cache } from "../../cache";
 import { heroEmojis, rankEmojis } from "../../emojis";
 import { Command2 } from "../../typings/discord.js-commando/command";
 import { arrayGroupBy, embedOriginUserData, getOnce, showCooldown } from "../../utils";
-import { readTextWithCache } from "../../wiki";
 
 const historyTime = 24 * 60 * 60 * 1000;
 
@@ -82,7 +82,8 @@ export default class GashaponCommand extends Command2 {
 		}
 
 		const gashapons = await cache.getOrFetch<Gashapons>('Gashapons', async () => {
-			return JSON.parse(await readTextWithCache('使用者:小飄飄/bot/Gashapons.json')) as Gashapons;
+			const resp = await fetch('https://raw.githubusercontent.com/stu43005/sdorica-wiki-bot/data/wiki/Gashapons.json');
+			return await resp.json() as Gashapons;
 		});
 
 		if (gashaponName == "help" || gashaponName == "list") {

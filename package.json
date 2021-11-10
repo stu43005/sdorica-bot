@@ -31,6 +31,7 @@
     "@tsconfig/node14": "^1.0.1",
     "@types/cheerio": "^0.22.23",
     "@types/node": "^14.17.5",
+    "@types/node-fetch": "^2.5.12",
     "@types/request": "^2.48.5",
     "@types/uuid": "^8.3.0",
     "cheerio": "^1.0.0-rc.5",

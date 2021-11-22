@@ -93,7 +93,7 @@ async function getConstantValues() {
 export default class WikiCommand extends Command2 {
 	constructor(client: CommandoClient) {
 		super(client, {
-			name: 'wiki',
+			name: 'wiki2',
 			group: 'sdorica',
 			memberName: 'wiki',
 			description: '快速查詢Wiki資料',
@@ -107,6 +107,7 @@ export default class WikiCommand extends Command2 {
 使用指令後，在5分鐘內可由指令使用者按反應調整等級及加值。`,
 			format: 'wiki [頁面名稱|角色名稱] [其他參數們]',
 			examples: ['wiki 推薦隊伍', 'wiki 刃 60 +10 技能書 二魂'],
+			hidden: true,
 		});
 	}
 

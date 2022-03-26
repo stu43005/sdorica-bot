@@ -105,7 +105,7 @@ function getMatchRegexp(item: MemeItem) {
 		case MatchType.Normal:
 			return new RegExp(regexpEscape(item.keyword), "i");
 		case MatchType.Strict:
-			return new RegExp(`(^|$|[\s.,:\u3002]+)${regexpEscape(item.keyword)}(^|$|[\s.,:\u3002]+)`, "i");
+			return new RegExp(`(^|$|[\s.,:\u3002]+)${regexpEscape(item.keyword)}(^|$|[\\s.,:\u3002]+)`, "i");
 		case MatchType.Exact:
 			return new RegExp(`^${regexpEscape(item.keyword)}$`, "i");
 		case MatchType.StartsWith:
